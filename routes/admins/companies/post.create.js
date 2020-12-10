@@ -22,6 +22,7 @@ module.exports = {
       'state',
       'zipcode',
       'country',
+      'thumbnail',
       'status'
     ])
   },
@@ -81,7 +82,7 @@ module.exports = {
               data.company = company;
               next(null, data);
             })
-            .catch((k) => next({
+            .catch(() => next({
               code: 500,
               message: 'Erro ao tentar criar nova empresa.'
             }));

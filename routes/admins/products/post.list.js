@@ -12,6 +12,7 @@ module.exports = {
   auth: 'common',
   validate: {
     body: {
+      companyId: schemas.product.companyId,
       status: schemas.product.status,
       in: Joi.array().items(schemas.product.status).optional(),
     }
@@ -20,7 +21,7 @@ module.exports = {
     const Op = models.Sequelize.Op;
     const query = {
       where: {
-        ownerId: req.credentials.ownerId,
+        companyId: req.body.companyId,
         status: 'active'
       }
     };

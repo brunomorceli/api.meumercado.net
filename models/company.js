@@ -45,6 +45,13 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(128),
       allowNull: false
     },
+    thumbnail: {
+      type: DataTypes.BLOB,
+      allowNull: true,
+      get() {
+        return this.getDataValue('thumbnail').toString('utf8');
+      }
+    },
     status: {
       type: DataTypes.ENUM(['active', 'inactive', 'suspended', 'deleted']),
       defaultValue: 'active',
@@ -74,6 +81,7 @@ module.exports = (sequelize, DataTypes) => {
       'state',
       'zipcode',
       'country',
+      'thumbnail',
       'status',
       'createdAt'
     ]);

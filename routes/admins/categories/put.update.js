@@ -13,14 +13,14 @@ module.exports = {
   validate: {
     body: _.pick(schemas.category, [
       'id',
+      'companyId',
       'name',
-      'icon'
+      'thumbnail'
     ])
   },
   handler: (req, res) => {
     Async.waterfall([
       next => next(null, {
-        ownerId: req.credentials.ownerId,
         Op: models.Sequelize.Op
       }),
 
@@ -29,7 +29,7 @@ module.exports = {
         const query = {
           where: {
             id: { [data.Op.ne]: req.body.id },
-            ownerId: data.ownerId,
+            companyId: req.body.companyId,
             name: { [data.Op.iLike]: req.body.name },
             status: 'active',
           }
@@ -46,7 +46,7 @@ module.exports = {
         const query = {
           where: {
             id: req.body.id,
-            ownerId: data.ownerId
+            companyId: req.body.companyId
           }
         };
 
@@ -75,10 +75,7 @@ module.exports = {
           data.category = category;
           next(null, data);
         })
-        .catch((k) => {
-          console.log(k);
-          next('Error on try to update category.', data);
-        });
+        .catch(() => next('Error on try to update category.', data));
       }
     ],
     (error, data) => {

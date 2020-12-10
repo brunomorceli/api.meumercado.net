@@ -30,8 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: { allowNull: false }
     });
 
-    model.belongsTo(models.user, {
-      as: 'owner',
+    model.belongsTo(models.company, {
       foreignKey: { allowNull: false }
     });
 

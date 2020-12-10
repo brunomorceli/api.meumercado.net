@@ -13,14 +13,15 @@ module.exports = {
   auth: 'common',
   validate: {
     body: _.pick(schemas.category, [
+      'companyId',
       'name',
-      'icon'
+      'thumbnail'
     ])
   },
   handler: (req, res) => {
     Async.waterfall([
       next => next(null, {
-        ownerId: req.credentials.ownerId,
+        companyId: req.body.companyId,
         Op: models.Sequelize.Op
       }),
       
@@ -28,7 +29,7 @@ module.exports = {
       (data, next) => {
         const query = {
           where: {
-            ownerId: data.ownerId,
+            companyId: data.companyId,
             name: { [data.Op.iLike]: req.body.name },
             status: 'active',
           }
@@ -44,14 +45,13 @@ module.exports = {
       (data, next) => {
         const categoryData = Object.assign(req.body, {
           id: Uuid(),
-          ownerId: data.ownerId,
           status: 'active'
         });
 
         models.category
         .create(categoryData)
-        .then(newcategory => {
-          data.category = newcategory;
+        .then(newCategory => {
+          data.category = newCategory;
           next(null, data);
         })
         .catch(() => next('Error on try to create category.', data));

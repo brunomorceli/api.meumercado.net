@@ -45,7 +45,6 @@ module.exports = {
           createdAt: new Date(),
           ownerId: data.user.ownerId,
           userId: data.user.id,
-          role: data.user.role,
           remoteAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
         }, config.tokenSecret);
   

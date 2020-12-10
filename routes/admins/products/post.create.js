@@ -13,6 +13,7 @@ module.exports = {
   auth: 'common',
   validate: {
     body: _.pick(schemas.product, [
+      'companyId',
       'name',
       'description',
       'categories',
@@ -32,7 +33,7 @@ module.exports = {
       (data, next) => {
         const query = {
           where: {
-            ownerId: data.ownerId,
+            companyId: req.body.companyId,
             name: { [data.Op.iLike]: req.body.name },
             status: 'active',
           }
@@ -48,7 +49,6 @@ module.exports = {
       (data, next) => {
         const productData = Object.assign(_.omit(req.body, 'thumbnail'), {
           id: Uuid(),
-          ownerId: data.ownerId,
           status: 'active'
         });
 

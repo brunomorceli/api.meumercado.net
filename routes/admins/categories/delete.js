@@ -15,17 +15,13 @@ module.exports = {
   handler: (req, res) => {
     Async.waterfall([
       next => next(null, {
-        ownerId: req.credentials.ownerId,
         Op: models.Sequelize.Op
       }),
 
       // get the existing category
       (data, next) => {
         const query = {
-          where: {
-            id: req.params.id,
-            ownerId: data.ownerId
-          }
+          where: { id: req.params.id }
         };
 
         models.category

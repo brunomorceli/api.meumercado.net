@@ -28,15 +28,20 @@ module.exports = {
         .findOne(query)
         .then(user => {
           if (!user) {
-            return next({ message: 'Invalid credentials', status: 400 }, data);
+            return next({
+              message: 'Invalid credentials',
+              status: 400
+            });
           }
 
           data.user = user;
           next(null, data);
         })
         .catch((e) => {
-          console.log(e);
-          next({ message: 'Error on try to find user', status: 500 }, data);
+          next({
+            message: 'Error on try to find user',
+            status: 500
+          });
         });
       },
   
@@ -46,11 +51,10 @@ module.exports = {
           createdAt: new Date(),
           ownerId: data.user.ownerId,
           userId: data.user.id,
-          role: 'owner',
           remoteAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress,
         }, config.tokenSecret);
 
-        if (data.user.status === 'pending') {
+        if (data.user.status === 'confirmation') {
           data.user.status = 'active';
           data.user.confirmToken = null;
         }
@@ -60,7 +64,7 @@ module.exports = {
           data.user = saveUser;
           next(null, data);
         })
-        .catch(() => next({ message: 'Error on try to update user', status: 500 }))
+        .catch(() => next({ message: 'Error on try to update user', status: 500 }));
       }
     ], (error, data) => {
       if (error) {
@@ -73,6 +77,7 @@ module.exports = {
         email: data.user.email,
         firstName: data.user.firstName,
         lastName: data.user.lastName,
+        thumbnail: data.user.thumbnail,
         token: data.user.sessionToken
       });
     });

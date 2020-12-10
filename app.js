@@ -119,30 +119,6 @@ router.addAuthMiddleware('common', (req, res, next) => {
 	});
 });
 
-router.addAuthMiddleware('client', (req, res, next) => {
-	if (!req.credentials || req.credentials.role !== 'client') {
-		return res.status(401).json({ message: 'Unauthorized' });
-	}
-
-	next();
-});
-
-router.addAuthMiddleware('owner', (req, res, next) => {
-	if (!req.credentials || req.credentials.role !== 'owner') {
-		return res.status(401).json({ message: 'Unauthorized' });
-	}
-
-	next();
-});
-
-router.addAuthMiddleware('user', (req, res, next) => {
-	if (!req.credentials || ['owner', 'user'].indexOf(req.credentials.role) < 0) {
-		return res.status(401).json({ message: 'Unauthorized' });
-	}
-
-	next();
-});
-
 // =====================================================================================
 //                                    EMAIL
 // =====================================================================================

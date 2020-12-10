@@ -21,6 +21,7 @@ module.exports = {
       'gender',
       'phoneNumber',
       'birthday',
+      'thumbnail',
       'status'
     ])
   },

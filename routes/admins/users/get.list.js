@@ -23,7 +23,7 @@ module.exports = {
           'gender',
           'phoneNumber',
           'birthday',
-          'role',
+          'thumbnail',
           'status'
         ])
       )

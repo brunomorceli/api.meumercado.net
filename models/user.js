@@ -76,13 +76,15 @@ module.exports = (sequelize, DataTypes) => {
       field: 'reset_pwd_token',
       allowNull: true,
     },
-    role: {
-      type: DataTypes.ENUM(['owner', 'admin', 'user', 'client']),
-      allowNull: false,
-      defaultValue: 'client'
+    thumbnail: {
+      type: DataTypes.BLOB,
+      allowNull: true,
+      get() {
+        return this.getDataValue('thumbnail').toString('utf8');
+      }
     },
     status: {
-      type: DataTypes.ENUM(['inviting', 'active', 'inactive', 'pending', 'cancelled']),
+      type: DataTypes.ENUM(['active', 'inactive', 'confirmation']),
       allowNull: false,
       defaultValue: 'active'
     },
@@ -125,10 +127,10 @@ module.exports = (sequelize, DataTypes) => {
           gender: user.gender,
           birthday: user.birthday,
           language: user.language,
-          role: user.role,
           permissions: user.user_permissions.map(i => i.permissionId),
           companies: user.user_companies.map(i => i.companyId),
-          token: user.sessionToken
+          token: user.sessionToken,
+          thumbnail: user.thumbnail
         };
 
         if(_.isArray(omit) && omit.length !== 0) {
@@ -150,7 +152,6 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: { allowNull: true }
     });
 
-    model.hasMany(models.userPermission);
   };
 
   model.generateConfirmToken = () => {

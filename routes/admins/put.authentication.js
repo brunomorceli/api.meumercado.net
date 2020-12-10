@@ -55,7 +55,6 @@ module.exports = {
             }
 
             const id = Uuid();
-
             const userData = {
               id: id,
               ownerId: id,
@@ -67,8 +66,8 @@ module.exports = {
               gender: 'male',
               birthday: null,
               language: req.headers["accept-language"].substring(0, 2),
-              role: 'owner',
-              status: 'pending',
+              thumbnail: null,
+              status: 'confirmation',
               confirmToken: null
             };
 
@@ -83,10 +82,6 @@ module.exports = {
 
           // create and send a new token
           (data, next) => {
-            if (data.user.status !== 'pending') {
-              return next(null, data);
-            }
-
             data.user.confirmToken = models.user.generateConfirmToken();
             data.user
             .save({ transaction: data.transaction })

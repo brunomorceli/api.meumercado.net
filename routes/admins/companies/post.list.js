@@ -27,8 +27,7 @@ module.exports = {
 
     models.company.findAll(query)
     .then(result => res.json(result || []))
-    .catch((k) => {
-      console.log(k);
+    .catch(() => {
       res.status(500).json({ message: 'Error on try to get company'})
     });  
   }

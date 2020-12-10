@@ -6,9 +6,10 @@ const ct = require('./customTypes');
 
 module.exports = {
   id: ct.uuid,
-  ownerId: ct.uuid.required(),
+  companyId: ct.uuid.required(),
   name: joi.string().min(1).max(128).required(),
   description: joi.string().max(1024).optional(),
+  thumbnail: joi.string().min(128).allow(null),
   status: joi.string().allow('active', 'deleted').required(),
   categories: joi.array().items(ct.uuid).allow([]),
   price: joi.number().positive().precision(2).required(),

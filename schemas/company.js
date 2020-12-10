@@ -16,6 +16,7 @@ module.exports = {
   state: joi.string().length(2).required(),
   zipcode: joi.string().length(9).regex(/^[0-9]{5}-[0-9]{3}/).required(),
   country: joi.string().min(2).max(128).required(),
+  thumbnail: joi.string().min(128).allow(null),
   status: joi.string().allow('active', 'deleted').required(),
   createdAt: joi.string().min(10).optional().allow(null),
   updatedAt: joi.string().min(10).optional().allow(null),

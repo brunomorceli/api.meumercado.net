@@ -71,8 +71,8 @@ module.exports = {
               language: req.headers["accept-language"].substring(0, 2),
               selectedCompanyId: null,
               confirmToken: null,
-              role: 'user',
-              status: 'inviting',
+              thumbnail: null,
+              status: 'active',
             };
 
             models.user

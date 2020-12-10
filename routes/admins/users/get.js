@@ -29,7 +29,8 @@ module.exports = {
           'id', 
           'email',
           'firstName',
-          'lastName'
+          'lastName',
+          'thumbnail'
         ])
       )
     ))

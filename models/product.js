@@ -41,6 +41,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: 0
     },
+    thumbnail: {
+      type: DataTypes.BLOB,
+      allowNull: true,
+      get() {
+        return this.getDataValue('thumbnail').toString('utf8');
+      }
+    },
     status: {
       type: DataTypes.ENUM(['active', 'inactive', 'deleted']),
       allowNull: false,
@@ -49,21 +56,22 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   model.associate = function(models) {
-    model.belongsTo(models.user, {
-      as: 'owner',
-      foreignKey: { allowNull: true }
+    model.belongsTo(models.company, {
+      foreignKey: { allowNull: false }
     });
   };
 
   model.filter = function(registry){
     return _.pick(registry, [
-      'id', 
+      'id',
+      'companyId',
       'name',
       'description',
       'categories',
       'price',
       'availability',
       'stock',
+      'thumbnail',
       'status'
     ]);
   };

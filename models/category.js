@@ -13,9 +13,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(256),
       allowNull: true,
     },
-    icon: {
-      type: DataTypes.STRING(256),
+    thumbnail: {
+      type: DataTypes.BLOB,
       allowNull: true,
+      get() {
+        return this.getDataValue('thumbnail').toString('utf8');
+      }
     },
     status: {
       type: DataTypes.ENUM(['active', 'deleted']),
@@ -25,9 +28,8 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   model.associate = function(models) {
-    model.belongsTo(models.user, {
-      as: 'owner',
-      foreignKey: { allowNull: true }
+    model.belongsTo(models.company, {
+      foreignKey: { allowNull: false }
     });
   };
 
@@ -35,8 +37,9 @@ module.exports = (sequelize, DataTypes) => {
     return _.pick(registry, [
       'id', 
       'name',
-      'icon',
-      'status'
+      'thumbnail',
+      'status',
+      'companyId'
     ]);
   };
 

@@ -13,7 +13,6 @@ module.exports = {
   handler: (req, res) => {
     const query = {
       where: {
-        ownerId: req.credentials.ownerId,
         id: req.params.id,
         status: 'active'
       }
