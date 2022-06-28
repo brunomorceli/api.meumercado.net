@@ -130,7 +130,7 @@ export class UsersService {
       },
     });
 
-    return { token: tokenData.token };
+    return { user: UserHandler.getSafeData(user), token: tokenData.token };
   }
 
   async authenticate(
@@ -175,7 +175,7 @@ export class UsersService {
       throw error;
     }
 
-    return { token: tokenData.token };
+    return { user: UserHandler.getSafeData(user), token: tokenData.token };
   }
 
   async checkAuth(id: string, validateAt: string): Promise<User> {

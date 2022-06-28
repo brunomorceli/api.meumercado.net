@@ -1,16 +1,34 @@
-import { AuthType } from '@prisma/client';
+import { AuthType, User } from '@prisma/client';
 
 import { PrismaUtils } from '@App/utils';
 import { UserAuthenticateDto } from './user-authenticate.dto';
 import { UsersQuery } from './user-query.dto';
 
 export class UserHandler {
+  static getSafeData(user: User): any {
+    const result = {};
+    [
+      'id',
+      'avatar',
+      'firstName',
+      'lastName',
+      'search',
+      'gender',
+      'email',
+      'phoneNumber',
+      'createdAt',
+    ].forEach((key) => (result[key] = user[key]));
+
+    return result;
+  }
+
   static getSafeFields(): any {
     return PrismaUtils.toSelect([
       'id',
       'avatar',
       'firstName',
       'lastName',
+      'search',
       'gender',
       'email',
       'phoneNumber',

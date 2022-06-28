@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { User } from '@prisma/client';
+import { IsObject, IsString } from 'class-validator';
 
 export class UserValidateDto {
   @ApiProperty()
@@ -8,6 +9,10 @@ export class UserValidateDto {
 }
 
 export class UserValidateResponse {
+  @ApiProperty()
+  @IsObject()
+  user: User;
+
   @ApiProperty()
   @IsString()
   public token: string;
