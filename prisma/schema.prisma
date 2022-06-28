@@ -1,0 +1,298 @@
+// =========================================================================================
+// SETTINGS
+// =========================================================================================
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["interactiveTransactions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./database.erd.svg"
+}
+
+// =========================================================================================
+// MODELS
+// =========================================================================================
+
+model User {
+  id              String         @id @default(uuid()) @db.Uuid
+  avatar          String?
+  firstName       String?        @map("first_name")
+  lastName        String?        @map("last_name")
+  search          String?
+  gender          GenderType     @default(UNDEFINED)
+  authType        AuthType       @default(EMAIL) @map("auth_type")
+  email           String?        @unique
+  phoneNumber     String?        @unique @map("phone_number")
+  thirdPartyId    String?        @unique @map("third_party_id") @db.Uuid
+  thirdPartyToken String?        @map("thrid_party_token")
+  metadata        Json?
+  validationCode  String?        @unique @map("validation_code")
+  sessionToken    String?        @unique @map("session_token")
+  status          UserStatusType @default(VALIDATION)
+  validateAt      DateTime?      @map("validated_at")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  deletedAt       DateTime?      @map("deleted_at")
+
+  userPlaces UserPlace[]
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@index([thirdPartyId])
+  @@map("users")
+}
+
+model Invitation {
+  id          String               @id @default(uuid()) @db.Uuid
+  role        RoleType             @default(EMPLOYEE)
+  email       String?              @unique
+  phoneNumber String?              @unique @map("phone_number")
+  status      InviteStatusType @default(PENDING)
+  createdAt   DateTime             @default(now()) @map("created_at")
+  updatedAt   DateTime             @updatedAt @map("updated_at")
+  deletedAt   DateTime?            @map("deleted_at")
+  placeId     String               @map("place_id") @db.Uuid
+  place       Place                @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+
+  @@unique([email, placeId], name: "email_place")
+  @@unique([phoneNumber, placeId], name: "phone_number_place")
+  @@map("invitations")
+}
+
+model UserPlace {
+  id        String              @id @default(uuid()) @db.Uuid
+  role      RoleType            @default(OWNER)
+  status    UserPlaceStatusType @default(ACTIVE)
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedAt DateTime            @updatedAt @map("updated_at")
+  deletedAt DateTime?           @map("deleted_at")
+  userId    String              @map("user_id") @db.Uuid
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  placeId   String              @map("place_id") @db.Uuid
+  place     Place               @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+
+  @@unique([userId, placeId])
+  @@map("user_places")
+}
+
+model Place {
+  id        String          @id @default(uuid()) @db.Uuid
+  label     String
+  search    String?
+  status    PlaceStatusType @default(ACTIVE)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  deletedAt DateTime?       @map("deleted_at")
+
+  userPlaces      UserPlace[]
+  strategies      Strategy[]
+  brands          Brand[]
+  products        Product[]
+  invitations Invitation[]
+
+  @@map("places")
+}
+
+model Strategy {
+  id        String             @id @default(uuid()) @db.Uuid
+  label     String
+  search    String?
+  theme     ThemeType
+  themeData Json?              @map("theme_data") // if theme = 'CUSTOM'
+  startsAt  DateTime           @map("starts_at")
+  endsAt    DateTime?          @map("ends_at")
+  status    StrategyStatusType @default(ACTIVE)
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+  deletedAt DateTime?          @map("deleted_at")
+
+  placeId String @map("place_id") @db.Uuid
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  @@map("strategies")
+}
+
+model Brand {
+  id        String          @id @default(uuid()) @db.Uuid
+  label     String
+  search    String?
+  status    BrandStatusType @default(ACTIVE)
+  createdAt DateTime        @default(now()) @map("created_at")
+  updatedAt DateTime        @updatedAt @map("updated_at")
+  deletedAt DateTime?       @map("deleted_at")
+
+  placeId String @map("place_id") @db.Uuid
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  products Product[]
+
+  @@map("brands")
+}
+
+model Product {
+  id        String            @id @default(uuid()) @db.Uuid
+  label     String
+  search    String?
+  status    ProductStatusType @default(ACTIVE)
+  createdAt DateTime          @default(now()) @map("created_at")
+  updatedAt DateTime          @updatedAt @map("updated_at")
+  deletedAt DateTime?         @map("deleted_at")
+
+  placeId String @map("place_id") @db.Uuid
+  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+
+  brandId String @map("brand_id") @db.Uuid
+  brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
+
+  skus Sku[]
+
+  @@map("products")
+}
+
+model Sku {
+  id        String        @id @default(uuid()) @db.Uuid
+  label     String
+  search    String?
+  status    SkuStatusType @default(ACTIVE)
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  deletedAt DateTime?     @map("deleted_at")
+
+  productId String  @map("product_id") @db.Uuid
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("skus")
+}
+
+// =========================================================================================
+// ENUMS
+// =========================================================================================
+
+enum StrategyStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("strategy_status_type")
+}
+
+enum SkuStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("sku_status_type")
+}
+
+enum PlaceStrategyStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("place_strategy_status_type")
+}
+
+enum StrategySkuStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("strategy_sku_status_type")
+}
+
+enum BrandStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("brand_status_type")
+}
+
+enum ProductStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("product_status_type")
+}
+
+enum UserStatusType {
+  VALIDATION
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("user_status_type")
+}
+
+enum UserPlaceStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+
+  @@map("user_place_status_type")
+}
+
+enum PlaceStatusType {
+  ACTIVE
+  PENDING
+  DRAFT
+  DONE
+  DELETED
+
+  @@map("place_status_type")
+}
+
+enum ThemeType {
+  DEFAULT
+  DARK
+
+  @@map("theme_type")
+}
+
+enum RoleType {
+  OWNER
+  ADMIN
+  MANAGER
+  EMPLOYEE
+  USER
+
+  @@map("role_type")
+}
+
+enum GenderType {
+  UNDEFINED
+  MALE
+  FEMALE
+
+  @@map("gender_type")
+}
+
+enum AuthType {
+  EMAIL
+  PHONE_NUMBER
+  FACEBOOK
+  GOOGLE
+  TWITCH
+
+  @@map("auth_type")
+}
+
+enum InviteStatusType {
+  ACTIVE
+  PENDING
+  DECLINED
+  DELETED
+
+  @@map("invite_status_type")
+}
