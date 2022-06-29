@@ -4,13 +4,14 @@ import {
   forwardRef,
   Get,
   Inject,
+  Param,
   Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { User } from '@prisma/client';
+import { Place, User } from '@prisma/client';
 
 import {
   UserAuthenticateDto,
@@ -19,6 +20,8 @@ import {
   UserValidateResponse,
   UserValidateDto,
 } from '@App/users';
+import { UserId } from '@App/commons';
+import { PlacesService } from '@App/places/places.service';
 
 @ApiTags('users')
 @Controller('users')
@@ -26,6 +29,7 @@ export class UsersController {
   constructor(
     @Inject(forwardRef(() => UsersService))
     private readonly usersService: UsersService,
+    private readonly placesService: PlacesService,
   ) {}
 
   @ApiBearerAuth('access-token')
@@ -57,6 +61,15 @@ export class UsersController {
   ): Promise<UserValidateResponse> {
     try {
       return await this.usersService.validateCode(userValidateDto);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  @Get(':userId/places')
+  async getAllPlaces(@Param() params: UserId): Promise<Array<Place>> {
+    try {
+      return await this.placesService.findAll(params.userId);
     } catch (error) {
       throw error;
     }
