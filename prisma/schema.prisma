@@ -245,9 +245,7 @@ enum UserPlaceStatusType {
 
 enum PlaceStatusType {
   ACTIVE
-  PENDING
-  DRAFT
-  DONE
+  INACTIVE
   DELETED
 
   @@map("place_status_type")

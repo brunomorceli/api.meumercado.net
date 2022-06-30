@@ -35,11 +35,6 @@ export class PlacesController {
   }
 
   @Get(':placeId')
-  findAll(@Param() params: PlaceId) {
-    return this.placesService.findAll(params.placeId);
-  }
-
-  @Get(':placeId')
   findOne(@Param() params: PlaceId) {
     return this.placesService.findOne(params.placeId);
   }
