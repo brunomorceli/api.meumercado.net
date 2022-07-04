@@ -17,6 +17,7 @@ import { PlacesService } from '@App/places/places.service';
 import { UpdatePlaceDto } from '@App/places/dto/update-place.dto';
 import { PlaceId } from '@App/commons';
 import { ProductsService } from '@App/products/products.service';
+import { StrategiesService } from '@App/strategies/strategies.service';
 
 @ApiTags('places')
 @Controller('places')
@@ -27,6 +28,7 @@ export class PlacesController {
     @Inject(forwardRef(() => PlacesService))
     private readonly placesService: PlacesService,
     private readonly productsService: ProductsService,
+    private readonly strategiesService: StrategiesService,
   ) {}
 
   @Post()
@@ -57,5 +59,10 @@ export class PlacesController {
   @Get(':placeId/products')
   findAllProducts(@Param() params: PlaceId) {
     return this.productsService.findAll(params.placeId);
+  }
+
+  @Get(':placeId/strategies')
+  findAllStrategies(@Param() params: PlaceId) {
+    return this.strategiesService.findAll(params.placeId);
   }
 }

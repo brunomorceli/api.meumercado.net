@@ -83,18 +83,17 @@ export class PlacesService {
     });
   }
 
-  async findAll(userId: string) {
-    const registries = await this.prismaService.userPlace.findMany({
+  async findAll(userId: string): Promise<Array<UserPlace>> {
+    return this.prismaService.userPlace.findMany({
       where: { userId, status: 'ACTIVE' },
-      select: { place: true },
+      include: { place: true },
     });
-
-    return registries.map((up) => up.place);
   }
 
   async findOne(id: string): Promise<Place> {
     return this.prismaService.place.findFirst({
       where: { id, status: 'ACTIVE' },
+      include: { strategies: true },
     });
   }
 

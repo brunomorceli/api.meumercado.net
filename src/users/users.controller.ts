@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Place, User } from '@prisma/client';
+import { Place, User, UserPlace } from '@prisma/client';
 
 import {
   UserAuthenticateDto,
@@ -67,7 +67,7 @@ export class UsersController {
   }
 
   @Get(':userId/places')
-  async getAllPlaces(@Param() params: UserId): Promise<Array<Place>> {
+  async getAllPlaces(@Param() params: UserId): Promise<Array<UserPlace>> {
     try {
       return await this.placesService.findAll(params.userId);
     } catch (error) {
