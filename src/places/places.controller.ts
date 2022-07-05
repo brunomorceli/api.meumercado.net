@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -18,6 +19,7 @@ import { UpdatePlaceDto } from '@App/places/dto/update-place.dto';
 import { PlaceId } from '@App/commons';
 import { ProductsService } from '@App/products/products.service';
 import { StrategiesService } from '@App/strategies/strategies.service';
+import { Invitation, Place, Product, Strategy } from '@prisma/client';
 
 @ApiTags('places')
 @Controller('places')
@@ -32,17 +34,25 @@ export class PlacesController {
   ) {}
 
   @Post()
-  create(@Body() createPlaceDto: CreatePlaceDto) {
-    return this.placesService.create(createPlaceDto);
+  create(@Req() req: any, @Body() createPlaceDto: CreatePlaceDto) {
+    return this.placesService.create(req.user.ownerId, createPlaceDto);
   }
 
   @Get(':placeId')
-  findOne(@Param() params: PlaceId) {
+  findOne(@Param() params: PlaceId): Promise<Place> {
     return this.placesService.findOne(params.placeId);
   }
 
+  @Get()
+  async getAllPlaces(@Req() req): Promise<Array<Place>> {
+    return await this.placesService.findAll(req.user.ownerId);
+  }
+
   @Patch(':placeId')
-  update(@Param() params: PlaceId, @Body() updatePlaceDto: UpdatePlaceDto) {
+  update(
+    @Param() params: PlaceId,
+    @Body() updatePlaceDto: UpdatePlaceDto,
+  ): Promise<Place> {
     return this.placesService.update(params.placeId, updatePlaceDto);
   }
 
@@ -52,17 +62,17 @@ export class PlacesController {
   }
 
   @Get(':placeId/invitations')
-  findAllInvitations(@Param() params: PlaceId) {
+  findAllInvitations(@Param() params: PlaceId): Promise<Array<Invitation>> {
     return this.placesService.findAllInvitations(params.placeId);
   }
 
   @Get(':placeId/products')
-  findAllProducts(@Param() params: PlaceId) {
+  findAllProducts(@Param() params: PlaceId): Promise<Array<Product>> {
     return this.productsService.findAll(params.placeId);
   }
 
   @Get(':placeId/strategies')
-  findAllStrategies(@Param() params: PlaceId) {
+  findAllStrategies(@Param() params: PlaceId): Promise<Array<Strategy>> {
     return this.strategiesService.findAll(params.placeId);
   }
 }

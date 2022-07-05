@@ -8,6 +8,7 @@ import {
   Param,
   Post,
   Put,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
@@ -29,8 +30,13 @@ export class UsersInvitationController {
   ) {}
 
   @Post()
-  sendInvitation(@Body() inviteUserDto: InviteUserDto) {
-    return this.placesService.invite(inviteUserDto);
+  @UseGuards(AuthGuard('owner'))
+  sendInvitation(
+    @Req() req,
+    @Body() inviteUserDto: InviteUserDto,
+  ): Promise<void> {
+    const { ownerId } = req.user;
+    return this.placesService.invite(ownerId, inviteUserDto);
   }
 
   @Put(':invitationId/decline')
@@ -44,8 +50,8 @@ export class UsersInvitationController {
   }
 
   @Delete(':invitationId')
-  removeUser(@Param() params: InvitationId): Promise<void> {
-    return this.placesService.removeUser(params.invitationId);
+  remove(@Param() params: InvitationId): Promise<void> {
+    return this.placesService.removeInvitation(params.invitationId);
   }
 
   @Get(':invitationId')

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AuthType, User, UserStatusType } from '@prisma/client';
+import { User, UserStatusType } from '@prisma/client';
 
 import { MessagesService } from '@App/messages';
 import { PrismaService } from '@App/prisma';
@@ -37,114 +37,44 @@ export class UsersService {
     );
   }
 
-  private getUpsertBaseData(data: any = {}): any {
-    return {
-      authType: data.authType || AuthType.EMAIL,
-      validationCode: data.validationCode || undefined,
-      email: data.email || undefined,
-      phoneNumber: data.phoneNumber || undefined,
-      thirdPartyId: data.thirdPartyId || undefined,
-      thirdPartyToken: data.thirdPartyToken || undefined,
-      metadata: data.metadata || {},
-      validateAt: data.validateAt || null,
-      sessionToken: data.sessionToken || null,
-      status: data.status || UserStatusType.VALIDATION,
-    };
+  private async upsertUser(
+    authenticateDto: UserAuthenticateDto,
+  ): Promise<User> {
+    const { email } = authenticateDto;
+    let user = await this.prismaService.user.findFirst({
+      where: { email },
+    });
+
+    if (user) {
+      return user;
+    }
+
+    user = await this.prismaService.user.create({ data: { email } });
+
+    return this.prismaService.user.update({
+      where: { email },
+      data: { ownerId: user.id },
+    });
   }
 
-  private async authenticateEmail(
-    authenticateDto: UserAuthenticateDto,
-  ): Promise<void> {
+  async authenticate(authenticateDto: UserAuthenticateDto): Promise<void> {
     const { email } = authenticateDto;
     const validationCode = await this.getUniqueValidationCode();
 
-    const upsertData = this.getUpsertBaseData({
-      validationCode,
-      email,
-      authType: AuthType.EMAIL,
-    });
+    const user = await this.upsertUser(authenticateDto);
 
-    await this.prismaService.user.upsert({
-      where: UserHandler.authenticateDtoToQuery(authenticateDto),
-      create: upsertData,
-      update: upsertData,
+    await this.prismaService.user.update({
+      where: { id: user.id },
+      data: {
+        validationCode,
+        sessionToken: null,
+      },
     });
 
     await this.messageService.sendEmail({
       email,
       metadata: { validationCode },
     });
-  }
-
-  private async authenticatePhoneNumber(
-    authenticateDto: UserAuthenticateDto,
-  ): Promise<void> {
-    const { phoneNumber } = authenticateDto;
-    const validationCode = await this.getUniqueValidationCode();
-
-    const upsertData = this.getUpsertBaseData({
-      validationCode,
-      phoneNumber,
-      authType: AuthType.PHONE_NUMBER,
-    });
-
-    await this.prismaService.user.upsert({
-      where: UserHandler.authenticateDtoToQuery(authenticateDto),
-      create: upsertData,
-      update: upsertData,
-    });
-
-    await this.messageService.sendSms({
-      phoneNumber,
-      metadata: { validationCode },
-    });
-  }
-
-  private async authenticateThirdParty(
-    authenticateDto: UserAuthenticateDto,
-  ): Promise<UserValidateResponse> {
-    const { authType, thirdPartyId, thirdPartyToken, metadata } =
-      authenticateDto;
-
-    const upsertData = this.getUpsertBaseData({
-      authType,
-      thirdPartyId,
-      thirdPartyToken,
-      metadata,
-    });
-
-    const user = await this.prismaService.user.upsert({
-      where: UserHandler.authenticateDtoToQuery(authenticateDto),
-      create: upsertData,
-      update: upsertData,
-    });
-
-    const tokenData = GeneralUtils.generateJwt({ userId: user.id });
-
-    await this.prismaService.user.update({
-      where: { id: user.id },
-      data: {
-        sessionToken: tokenData.token,
-        validateAt: tokenData.createdAt,
-        status: UserStatusType.ACTIVE,
-      },
-    });
-
-    return { user: UserHandler.getSafeData(user), token: tokenData.token };
-  }
-
-  async authenticate(
-    authenticateDto: UserAuthenticateDto,
-  ): Promise<UserValidateResponse | void> {
-    const { authType } = authenticateDto;
-    switch (authType) {
-      case AuthType.EMAIL:
-        return this.authenticateEmail(authenticateDto);
-      case AuthType.PHONE_NUMBER:
-        return this.authenticatePhoneNumber(authenticateDto);
-      default:
-        return this.authenticateThirdParty(authenticateDto);
-    }
   }
 
   async validateCode(

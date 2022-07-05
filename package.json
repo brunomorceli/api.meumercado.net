@@ -36,6 +36,7 @@
     "class-validator": "^0.13.2",
     "dotenv": "^16.0.1",
     "faker": "^6.6.6",
+    "lodash": "^4.17.21",
     "normalize-text": "^2.4.0",
     "passport": "^0.5.3",
     "passport-jwt": "^4.0.0",

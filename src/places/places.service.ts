@@ -4,16 +4,11 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   Place,
   PlaceStatusType,
-  RoleType,
   InviteStatusType,
-  UserPlace,
-  UserPlaceStatusType,
   Invitation,
 } from '@prisma/client';
-import { CreateUserPlaceDto } from './dto/create-user-place.dto';
 import { CreatePlaceDto } from './dto/create-place.dto';
 import { UpdatePlaceDto } from './dto/update-place.dto';
-import { UpdateUserPlaceDto } from './dto/update-user-place.dto';
 import { InviteUserDto } from './dto/invite-user.dto';
 import { MessagesService } from '@App/messages';
 import { InvitationResponse } from '@App/users';
@@ -25,68 +20,33 @@ export class PlacesService {
     private readonly messagesService: MessagesService,
   ) {}
 
-  async create(createPlaceDto: CreatePlaceDto): Promise<Place> {
+  async create(
+    ownerId: string,
+    createPlaceDto: CreatePlaceDto,
+  ): Promise<Place> {
     const search = GeneralUtils.toSearchText(createPlaceDto.label);
-
-    const place = await this.prismaService.$transaction(async (prisma) => {
-      const place = await prisma.place.create({
-        data: { ...createPlaceDto, search },
-      });
-
-      await this.addUser(
-        createPlaceDto.userId,
-        place.id,
-        {
-          role: RoleType.OWNER,
-          status: UserPlaceStatusType.ACTIVE,
-        },
-        prisma,
-      );
-
-      return place;
+    const place = await this.prismaService.place.findFirst({
+      where: { search, status: { not: 'DELETED' } },
     });
+    if (place) {
+      throw new HttpException(
+        'Place name already in use',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-    return place;
-  }
-
-  async addUser(
-    userId: string,
-    placeId: string,
-    createUserPlaceDto: CreateUserPlaceDto,
-    prismaHandler?: any,
-  ): Promise<UserPlace> {
-    return (prismaHandler || this.prismaService).userPlace.create({
+    return this.prismaService.place.create({
       data: {
-        ...createUserPlaceDto,
-        placeId,
-        userId,
+        ...createPlaceDto,
+        search,
+        ownerId,
       },
     });
   }
 
-  async updateUser(
-    userId: string,
-    placeId: string,
-    updateUserPlaceDto: UpdateUserPlaceDto,
-    prismaHandler?: any,
-  ) {
-    await (prismaHandler || this.prismaService).userPlace.update({
-      where: { placeId, userId },
-      data: updateUserPlaceDto,
-    });
-  }
-
-  async removeUser(id: string): Promise<void> {
-    await this.prismaService.userPlace.update({
-      where: { id },
-      data: { status: UserPlaceStatusType.DELETED },
-    });
-  }
-
-  async findAll(userId: string): Promise<Array<UserPlace>> {
-    return this.prismaService.userPlace.findMany({
-      where: { userId, status: 'ACTIVE' },
-      include: { place: true },
+  async findAll(ownerId: string): Promise<Array<Place>> {
+    return this.prismaService.place.findMany({
+      where: { ownerId, status: 'ACTIVE' },
     });
   }
 
@@ -98,25 +58,12 @@ export class PlacesService {
   }
 
   async update(id: string, updatePlaceDto: UpdatePlaceDto): Promise<Place> {
-    const placeId = id;
-    const existing = await this.prismaService.userPlace.findFirst({
-      where: {
-        placeId,
-        status: 'ACTIVE',
-        role: { in: ['ADMIN', 'OWNER'] },
-      },
-    });
-
-    if (!existing) {
-      throw new HttpException('Insufficient credentials', HttpStatus.FORBIDDEN);
-    }
-
     const data: any = { ...updatePlaceDto };
     if (updatePlaceDto.label) {
       data.search = GeneralUtils.toSearchText(updatePlaceDto.label);
     }
 
-    return this.prismaService.place.update({ where: { id: placeId }, data });
+    return this.prismaService.place.update({ where: { id }, data });
   }
 
   async remove(id: string): Promise<void> {
@@ -126,34 +73,19 @@ export class PlacesService {
     });
   }
 
-  async invite(inviteUserDto: InviteUserDto): Promise<void> {
-    const { email, phoneNumber, placeId } = inviteUserDto;
-    const where: any = {};
+  async invite(ownerId, inviteUserDto: InviteUserDto): Promise<void> {
+    const { email } = inviteUserDto;
 
-    if (email) {
-      where.email_place = { email, placeId };
-    } else {
-      where.phone_number_place = { phoneNumber, placeId };
-    }
-
-    const invitationData = { ...inviteUserDto, placeId };
+    const invitationData = { ...inviteUserDto, ownerId };
 
     const invitation = await this.prismaService.invitation.upsert({
-      where,
+      where: { email },
       create: invitationData,
       update: invitationData,
     });
 
-    if (email) {
-      await this.messagesService.sendEmail({
-        email,
-        metadata: { invitationId: invitation.id },
-      });
-      return;
-    }
-
-    await this.messagesService.sendSms({
-      phoneNumber,
+    await this.messagesService.sendEmail({
+      email,
       metadata: { invitationId: invitation.id },
     });
   }
@@ -171,16 +103,21 @@ export class PlacesService {
     });
   }
 
-  async findAllInvitations(placeId: string): Promise<Array<Invitation>> {
-    return await this.prismaService.invitation.findMany({
-      where: { placeId },
-    });
+  async findAllInvitations(ownerId: string): Promise<Array<Invitation>> {
+    return await this.prismaService.invitation.findMany({ where: { ownerId } });
   }
 
   async declineInvitation(id: string): Promise<void> {
     await this.prismaService.invitation.update({
       where: { id },
       data: { status: InviteStatusType.DECLINED },
+    });
+  }
+
+  async removeInvitation(id: string): Promise<void> {
+    await this.prismaService.invitation.update({
+      where: { id },
+      data: { status: InviteStatusType.DELETED },
     });
   }
 
@@ -193,13 +130,13 @@ export class PlacesService {
       throw new HttpException('Invalid request', HttpStatus.FORBIDDEN);
     }
 
-    const { email, role, placeId } = invitation;
+    const { email, ownerId } = invitation;
 
     const tokenData = await this.prismaService.$transaction(async (prisma) => {
       const user = await prisma.user.upsert({
         where: { email },
-        create: { email },
-        update: { email },
+        create: { email, ownerId },
+        update: { email, ownerId },
       });
 
       const tokenData = GeneralUtils.generateJwt({ userId: user.id });
@@ -207,22 +144,8 @@ export class PlacesService {
         where: { id: user.id },
         data: {
           validateAt: tokenData.createdAt,
-          validationCode: tokenData.token,
+          sessionToken: tokenData.token,
         },
-      });
-
-      const userId = user.id;
-      const userPlaceData = {
-        userId,
-        placeId,
-        role,
-        status: UserPlaceStatusType.ACTIVE,
-      };
-
-      await prisma.userPlace.upsert({
-        where: { userId_placeId: { userId, placeId } },
-        create: userPlaceData,
-        update: userPlaceData,
       });
 
       await prisma.invitation.update({

@@ -1,7 +1,6 @@
-import { AuthType, User } from '@prisma/client';
+import { User } from '@prisma/client';
 
 import { PrismaUtils } from '@App/utils';
-import { UserAuthenticateDto } from './user-authenticate.dto';
 import { UsersQuery } from './user-query.dto';
 
 export class UserHandler {
@@ -9,6 +8,7 @@ export class UserHandler {
     const result = {};
     [
       'id',
+      'ownerId',
       'avatar',
       'firstName',
       'lastName',
@@ -25,6 +25,7 @@ export class UserHandler {
   static getSafeFields(): any {
     return PrismaUtils.toSelect([
       'id',
+      'ownerId',
       'avatar',
       'firstName',
       'lastName',
@@ -69,18 +70,5 @@ export class UserHandler {
     }
 
     return result;
-  }
-
-  static authenticateDtoToQuery(authenticateDto: UserAuthenticateDto) {
-    const { email, phoneNumber, thirdPartyId, authType } = authenticateDto;
-    switch (authType) {
-      case AuthType.EMAIL:
-        return { email };
-      case AuthType.PHONE_NUMBER:
-        return { phoneNumber };
-      default: {
-        return { thirdPartyId };
-      }
-    }
   }
 }

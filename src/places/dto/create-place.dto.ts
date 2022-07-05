@@ -4,10 +4,6 @@ import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreatePlaceDto {
   @ApiProperty()
-  @IsUUID()
-  public userId: string;
-
-  @ApiProperty()
   @IsString()
   public label: string;
 

@@ -22,67 +22,47 @@ generator erd {
 // =========================================================================================
 
 model User {
-  id              String         @id @default(uuid()) @db.Uuid
-  avatar          String?
-  firstName       String?        @map("first_name")
-  lastName        String?        @map("last_name")
-  search          String?
-  gender          GenderType     @default(UNDEFINED)
-  authType        AuthType       @default(EMAIL) @map("auth_type")
-  email           String?        @unique
-  phoneNumber     String?        @unique @map("phone_number")
-  thirdPartyId    String?        @unique @map("third_party_id") @db.Uuid
-  thirdPartyToken String?        @map("thrid_party_token")
-  metadata        Json?
-  validationCode  String?        @unique @map("validation_code")
-  sessionToken    String?        @unique @map("session_token")
-  status          UserStatusType @default(VALIDATION)
-  validateAt      DateTime?      @map("validated_at")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  deletedAt       DateTime?      @map("deleted_at")
+  id             String         @id @default(uuid()) @db.Uuid
+  avatar         String?
+  firstName      String?        @map("first_name")
+  lastName       String?        @map("last_name")
+  search         String?
+  gender         GenderType     @default(UNDEFINED)
+  email          String?        @unique
+  phoneNumber    String?        @unique @map("phone_number")
+  validationCode String?        @unique @map("validation_code")
+  sessionToken   String?        @unique @map("session_token")
+  status         UserStatusType @default(VALIDATION)
+  validateAt     DateTime?      @map("validated_at")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  deletedAt      DateTime?      @map("deleted_at")
 
-  userPlaces UserPlace[]
+  ownerId String? @map("owner_id") @db.Uuid
+  owner   User?   @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  invitations Invitation[]
+  places      Place[]
+  owners      User[]       @relation("owner")
 
   @@index([email])
   @@index([phoneNumber])
-  @@index([thirdPartyId])
   @@map("users")
 }
 
 model Invitation {
-  id          String               @id @default(uuid()) @db.Uuid
-  role        RoleType             @default(EMPLOYEE)
-  email       String?              @unique
-  phoneNumber String?              @unique @map("phone_number")
+  id          String           @id @default(uuid()) @db.Uuid
+  email       String?          @unique
+  phoneNumber String?          @unique @map("phone_number")
   status      InviteStatusType @default(PENDING)
-  createdAt   DateTime             @default(now()) @map("created_at")
-  updatedAt   DateTime             @updatedAt @map("updated_at")
-  deletedAt   DateTime?            @map("deleted_at")
-  placeId     String               @map("place_id") @db.Uuid
-  place       Place                @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+  deletedAt   DateTime?        @map("deleted_at")
 
+  ownerId String @map("owner_id") @db.Uuid
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
-  @@unique([email, placeId], name: "email_place")
-  @@unique([phoneNumber, placeId], name: "phone_number_place")
   @@map("invitations")
-}
-
-model UserPlace {
-  id        String              @id @default(uuid()) @db.Uuid
-  role      RoleType            @default(OWNER)
-  status    UserPlaceStatusType @default(ACTIVE)
-  createdAt DateTime            @default(now()) @map("created_at")
-  updatedAt DateTime            @updatedAt @map("updated_at")
-  deletedAt DateTime?           @map("deleted_at")
-  userId    String              @map("user_id") @db.Uuid
-  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  placeId   String              @map("place_id") @db.Uuid
-  place     Place               @relation(fields: [placeId], references: [id], onDelete: Cascade)
-
-
-  @@unique([userId, placeId])
-  @@map("user_places")
 }
 
 model Place {
@@ -94,11 +74,12 @@ model Place {
   updatedAt DateTime        @updatedAt @map("updated_at")
   deletedAt DateTime?       @map("deleted_at")
 
-  userPlaces      UserPlace[]
-  strategies      Strategy[]
-  brands          Brand[]
-  products        Product[]
-  invitations Invitation[]
+  strategies Strategy[]
+  brands     Brand[]
+  products   Product[]
+
+  ownerId String @map("owner_id") @db.Uuid
+  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   @@map("places")
 }
@@ -256,16 +237,6 @@ enum ThemeType {
   DARK
 
   @@map("theme_type")
-}
-
-enum RoleType {
-  OWNER
-  ADMIN
-  MANAGER
-  EMPLOYEE
-  USER
-
-  @@map("role_type")
 }
 
 enum GenderType {
