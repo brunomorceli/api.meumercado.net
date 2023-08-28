@@ -159,16 +159,6 @@ export class CategoriesService {
       throw new BadRequestException('Categoria não encontrada');
     }
 
-    const productCount = await this.prismaService.product.count({
-      where: { categories: { has: category.id } },
-    });
-
-    if (productCount !== 0) {
-      throw new BadRequestException(
-        'Existem produtos utilizando esta categoria.',
-      );
-    }
-
     await this.prismaService.category.update({
       where: { id: category.id },
       data: {

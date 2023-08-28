@@ -25,4 +25,7 @@ export const Regex = {
   SUBDOMAIN_WITH_DASH: /^[a-z]+(-[a-z0-9]+)*$/,
   SUBDOMAIN: /^[a-z]+([a-z0-9]+)*$/,
   SLUG: /^[a-z]+([a-z0-9]+)*$/,
+  URL: /[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/,
+  URL_OR_BLOB:
+    /([-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*))|(^[data:image])/i,
 };

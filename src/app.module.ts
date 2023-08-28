@@ -1,10 +1,14 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UsersModule, CategoriesModule, ProductsModule } from '@App/modules';
-import { BucketsModule } from './shared';
+import { BucketsModule, SubdomainMiddleware } from './shared';
 
 @Module({
   imports: [BucketsModule, UsersModule, CategoriesModule, ProductsModule],
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(SubdomainMiddleware).forRoutes('*');
+  }
+}

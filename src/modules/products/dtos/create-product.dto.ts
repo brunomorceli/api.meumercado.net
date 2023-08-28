@@ -1,4 +1,4 @@
-import { EnumDecorator, StringDecorator } from '@App/shared';
+import { EnumDecorator, ImageDecorator, StringDecorator } from '@App/shared';
 import { ProductStatusType } from '@prisma/client';
 
 export class CreateProductDto {
@@ -15,6 +15,6 @@ export class CreateProductDto {
   })
   status?: ProductStatusType;
 
-  @StringDecorator({ description: 'Image cover.', required: false })
-  blob?: string;
+  @ImageDecorator({ required: false })
+  cover?: string;
 }

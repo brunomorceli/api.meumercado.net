@@ -1,6 +1,10 @@
-import { EnumDecorator, StringDecorator, UuidDecorator } from '@App/shared';
+import {
+  EnumDecorator,
+  ImageDecorator,
+  StringDecorator,
+  UuidDecorator,
+} from '@App/shared';
 import { ProductStatusType } from '@prisma/client';
-import { IsOptional, IsString } from 'class-validator';
 
 export class UpdateProductDto {
   @UuidDecorator()
@@ -12,9 +16,8 @@ export class UpdateProductDto {
   @StringDecorator({ required: false })
   description?: string;
 
-  @IsString()
-  @IsOptional()
-  blob?: string;
+  @ImageDecorator({ required: false })
+  cover?: string;
 
   @EnumDecorator({ enumType: ProductStatusType, required: false })
   status?: ProductStatusType;

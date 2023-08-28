@@ -2,11 +2,12 @@ import {
   CepDecorator,
   DateDecorator,
   EnumDecorator,
+  ImageDecorator,
   NumberDecorator,
+  SlugDecorator,
   StringDecorator,
   SubdomainDecorator,
   UFDecorator,
-  UrlDecorator,
   UuidDecorator,
 } from '@App/shared';
 import { Company, CompanyStatusType } from '@prisma/client';
@@ -17,6 +18,9 @@ export class CompanyEntity {
 
   @StringDecorator()
   label: string;
+
+  @SlugDecorator()
+  slug: string;
 
   @SubdomainDecorator()
   subdomain: string;
@@ -45,7 +49,7 @@ export class CompanyEntity {
   @CepDecorator()
   cep: string;
 
-  @UrlDecorator({ description: 'Logo Image URL.', required: false })
+  @ImageDecorator({ required: false })
   logo?: string;
 
   @EnumDecorator({ enumType: CompanyStatusType })

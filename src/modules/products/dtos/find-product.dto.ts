@@ -12,7 +12,7 @@ export class FindProductDto extends PaginationDto {
   parentId?: string;
 
   @StringDecorator({ required: false, minLength: 3 })
-  slug?: string;
+  label?: string;
 
   @EnumDecorator({
     enumType: ProductStatusType,

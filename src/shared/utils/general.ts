@@ -34,4 +34,18 @@ export class GeneralUtils {
 
     return { createdAt, token } as JwtResult;
   }
+
+  public static getSubdomain(url: string): string {
+    let domain = url;
+    if (url.includes('://')) {
+      domain = url.split('://')[1];
+    }
+
+    if (domain.indexOf('www')) {
+      domain = domain.replace('wwww', '');
+    }
+
+    const subdomain = domain.split('.')[0];
+    return subdomain;
+  }
 }

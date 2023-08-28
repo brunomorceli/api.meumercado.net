@@ -10,7 +10,7 @@ import {
 } from './dtos';
 import { ProductEntity } from './entities';
 import { randomUUID } from 'crypto';
-import Slug from 'slug';
+import * as Slug from 'slug';
 
 @Injectable()
 export class ProductsService {
@@ -26,7 +26,7 @@ export class ProductsService {
     createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
     const ownerId = user.ownerId;
-    const { label, description, blob, status } = createProductDto;
+    const { label, description, cover, status } = createProductDto;
     const slug = Slug(label);
 
     let product = await this.prismaService.product.findFirst({
@@ -50,8 +50,8 @@ export class ProductsService {
       ownerId,
     };
 
-    if (blob) {
-      await this.bucketsService.uploadImage(this.bucketName, data.id, blob);
+    if (cover) {
+      await this.bucketsService.uploadImage(this.bucketName, data.id, cover);
       data.cover = this.bucketsService.getImageUrl(this.bucketName, data.id);
     }
 
@@ -65,8 +65,7 @@ export class ProductsService {
     updateProductDto: UpdateProductDto,
   ): Promise<ProductEntity> {
     const ownerId = user.ownerId;
-    const { id, blob, ...updateData } = updateProductDto;
-    let cover = null;
+    const { id, cover, ...updateData } = updateProductDto;
 
     let product = await this.prismaService.product.findFirst({
       where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
@@ -76,9 +75,10 @@ export class ProductsService {
       throw new BadRequestException('Produto não encontrado.');
     }
 
-    if (blob) {
-      await this.bucketsService.uploadImage(this.bucketName, product.id, blob);
-      cover = this.bucketsService.getImageUrl(this.bucketName, product.id);
+    let newCover: any = null;
+    if (cover && cover.indexOf('data:image') === 0) {
+      await this.bucketsService.uploadImage(this.bucketName, product.id, cover);
+      newCover = this.bucketsService.getImageUrl(this.bucketName, product.id);
     }
 
     const slug = Slug(updateProductDto.label || product.label);
@@ -99,7 +99,7 @@ export class ProductsService {
 
     product = await this.prismaService.product.update({
       where: { id },
-      data: { ...updateData, slug, cover },
+      data: { ...updateData, slug, cover: newCover || product.cover },
     });
 
     return new ProductEntity(product);
@@ -124,15 +124,15 @@ export class ProductsService {
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
     const ownerId = user.ownerId;
-    const { slug, status } = findProductDto;
+    const { label, status } = findProductDto;
     const where: any = {
       ownerId,
       status: { not: ProductStatusType.DELETED },
     };
     const paginationData = FindProductDto.getPaginationParams(findProductDto);
 
-    if (slug) {
-      where.slug = { startsWith: slug };
+    if (label) {
+      where.slug = { startsWith: Slug(label) };
     }
 
     if (status) {

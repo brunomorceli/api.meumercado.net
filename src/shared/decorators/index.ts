@@ -27,3 +27,4 @@ export * from './cep.decorator';
 export * from './uf.decorator';
 export * from './subdomain.decorator';
 export * from './slug.decorator';
+export * from './image.decorator';
