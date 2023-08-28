@@ -1,22 +1,9 @@
 import { Module } from '@nestjs/common';
-import { UsersModule } from '@App/users';
-import { MessagesModule } from '@App/messages';
-import { StrategiesModule } from '@App/strategies/strategies.module';
-import { PlacesModule } from '@App/places/places.module';
-import { BrandsModule } from '@App/brands/brands.module';
-import { ProductsModule } from '@App/products/products.module';
-import { SkusModule } from '@App/skus/skus.module';
+import { UsersModule, CategoriesModule, ProductsModule } from '@App/modules';
+import { BucketsModule } from './shared';
 
 @Module({
-  imports: [
-    UsersModule,
-    MessagesModule,
-    StrategiesModule,
-    PlacesModule,
-    BrandsModule,
-    ProductsModule,
-    SkusModule,
-  ],
+  imports: [BucketsModule, UsersModule, CategoriesModule, ProductsModule],
   controllers: [],
   providers: [],
 })

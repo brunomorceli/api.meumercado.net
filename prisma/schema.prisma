@@ -1,10 +1,5 @@
-// =========================================================================================
-// SETTINGS
-// =========================================================================================
-
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["interactiveTransactions"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -12,256 +7,176 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-generator erd {
-  provider = "prisma-erd-generator"
-  output   = "./database.erd.svg"
-}
-
-// =========================================================================================
-// MODELS
-// =========================================================================================
-
 model User {
-  id             String         @id @default(uuid()) @db.Uuid
-  avatar         String?
-  firstName      String?        @map("first_name")
-  lastName       String?        @map("last_name")
-  search         String?
-  gender         GenderType     @default(UNDEFINED)
-  email          String?        @unique
-  phoneNumber    String?        @unique @map("phone_number")
-  validationCode String?        @unique @map("validation_code")
-  sessionToken   String?        @unique @map("session_token")
-  status         UserStatusType @default(VALIDATION)
-  validateAt     DateTime?      @map("validated_at")
-  createdAt      DateTime       @default(now()) @map("created_at")
-  updatedAt      DateTime       @updatedAt @map("updated_at")
-  deletedAt      DateTime?      @map("deleted_at")
+  id        String         @id @default(uuid()) @db.Uuid
+  email     String         @unique
+  name      String?
+  type      UserType       @default(ADMIN)
+  status    UserStatusType @default(ACTIVE)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime?      @updatedAt @map("updated_at")
+  userId    String?        @map("user_id")
+  ownerId   String?        @map("owner_id") @db.Uuid
+  owner     User?          @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  ownerId String? @map("owner_id") @db.Uuid
-  owner   User?   @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  invitations Invitation[]
-  places      Place[]
-  owners      User[]       @relation("owner")
+  authentications Authentication[]
+  companies       Company[]
+  categories      Category[]
+  products        Product[]
+  owners          User[]           @relation("owner")
 
   @@index([email])
-  @@index([phoneNumber])
   @@map("users")
 }
 
-model Invitation {
-  id          String           @id @default(uuid()) @db.Uuid
-  email       String?          @unique
-  phoneNumber String?          @unique @map("phone_number")
-  status      InviteStatusType @default(PENDING)
-  createdAt   DateTime         @default(now()) @map("created_at")
-  updatedAt   DateTime         @updatedAt @map("updated_at")
-  deletedAt   DateTime?        @map("deleted_at")
+model Authentication {
+  id                    String                   @id @default(uuid()) @db.Uuid
+  userId                String?                  @map("user_id") @db.Uuid
+  user                  User?                    @relation(fields: [userId], references: [id])
+  confirmationCode      String?                  @unique
+  metadata              Json?
+  status                AuthenticationStatusType @default(PENDING)
+  createdAt             DateTime                 @default(now()) @map("created_at")
+  updatedAt             DateTime?                @updatedAt @map("updated_at")
+  confirmationExpiredAt DateTime?                @map("confirmation_expired_at")
+  authenticatedAt       DateTime?                @map("authenticated_at")
 
-  ownerId String @map("owner_id") @db.Uuid
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  @@map("invitations")
+  @@index([userId])
+  @@index([confirmationCode])
+  @@map("authentications")
 }
 
-model Place {
-  id        String          @id @default(uuid()) @db.Uuid
-  label     String
-  search    String?
-  status    PlaceStatusType @default(ACTIVE)
-  createdAt DateTime        @default(now()) @map("created_at")
-  updatedAt DateTime        @updatedAt @map("updated_at")
-  deletedAt DateTime?       @map("deleted_at")
+model Company {
+  id                String            @id @default(uuid()) @db.Uuid
+  label             String
+  slug              String
+  subdomain         String            @unique
+  description       String?
+  address           String
+  addressComplement String?           @map("address_complement")
+  neighborhood      String
+  addressNumber     Int               @map("address_number")
+  city              String
+  state             String
+  cep               String
+  logo              String?
+  status            CompanyStatusType @default(ACTIVE)
+  ownerId           String            @map("owner_id") @db.Uuid
+  owner             User              @relation(fields: [ownerId], references: [id])
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  deletedAt         DateTime?         @map("deleted_at")
 
-  strategies Strategy[]
-  brands     Brand[]
-  products   Product[]
+  companyProducts CompanyProduct[]
 
-  ownerId String @map("owner_id") @db.Uuid
-  owner   User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  @@map("places")
+  @@index([slug])
+  @@index([subdomain])
+  @@map("companies")
 }
 
-model Strategy {
+model Category {
   id        String             @id @default(uuid()) @db.Uuid
   label     String
-  search    String?
-  theme     ThemeType
-  themeData Json?              @map("theme_data") // if theme = 'CUSTOM'
-  startsAt  DateTime           @map("starts_at")
-  endsAt    DateTime?          @map("ends_at")
-  status    StrategyStatusType @default(ACTIVE)
+  slug      String
+  cover     String?
+  color     String
+  status    CategoryStatusType @default(ACTIVE)
+  parentId  String?            @map("parent_id") @db.Uuid
+  parent    Category?          @relation("parent", fields: [parentId], references: [id])
+  ownerId   String             @map("owner_id") @db.Uuid
+  owner     User               @relation(fields: [ownerId], references: [id])
   createdAt DateTime           @default(now()) @map("created_at")
   updatedAt DateTime           @updatedAt @map("updated_at")
   deletedAt DateTime?          @map("deleted_at")
 
-  placeId String @map("place_id") @db.Uuid
-  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  parents         Category[]       @relation("parent")
+  companyProducts CompanyProduct[]
 
-  @@map("strategies")
-}
-
-model Brand {
-  id        String          @id @default(uuid()) @db.Uuid
-  label     String
-  search    String?
-  status    BrandStatusType @default(ACTIVE)
-  createdAt DateTime        @default(now()) @map("created_at")
-  updatedAt DateTime        @updatedAt @map("updated_at")
-  deletedAt DateTime?       @map("deleted_at")
-
-  placeId String @map("place_id") @db.Uuid
-  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
-
-  products Product[]
-
-  @@map("brands")
+  @@index([slug])
+  @@map("categories")
 }
 
 model Product {
-  id        String            @id @default(uuid()) @db.Uuid
-  label     String
-  search    String?
-  status    ProductStatusType @default(ACTIVE)
-  createdAt DateTime          @default(now()) @map("created_at")
-  updatedAt DateTime          @updatedAt @map("updated_at")
-  deletedAt DateTime?         @map("deleted_at")
+  id          String            @id @default(uuid()) @db.Uuid
+  label       String
+  description String?
+  slug        String
+  cover       String?
+  status      ProductStatusType @default(ACTIVE)
+  ownerId     String            @map("owner_id") @db.Uuid
+  owner       User              @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  deletedAt   DateTime?         @map("deleted_at")
 
-  placeId String @map("place_id") @db.Uuid
-  place   Place  @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  companyProducts CompanyProduct[]
 
-  brandId String @map("brand_id") @db.Uuid
-  brand   Brand  @relation(fields: [brandId], references: [id], onDelete: Cascade)
-
-  skus Sku[]
-
+  @@index([slug])
   @@map("products")
 }
 
-model Sku {
-  id        String        @id @default(uuid()) @db.Uuid
-  label     String
-  search    String?
-  status    SkuStatusType @default(ACTIVE)
-  createdAt DateTime      @default(now()) @map("created_at")
-  updatedAt DateTime      @updatedAt @map("updated_at")
-  deletedAt DateTime?     @map("deleted_at")
+model CompanyProduct {
+  id         String                   @id @default(uuid()) @db.Uuid
+  quantity   Int
+  price      Int
+  status     CompanyProductStatusType @default(ACTIVE)
+  companyId  String                   @map("company_id") @db.Uuid
+  company    Company                  @relation(fields: [companyId], references: [id])
+  productId  String                   @map("product_id") @db.Uuid
+  product    Product                  @relation(fields: [productId], references: [id])
+  categoryId String                   @map("category_id") @db.Uuid
+  category   Category                 @relation(fields: [categoryId], references: [id])
+  createdAt  DateTime                 @default(now()) @map("created_at")
+  updatedAt  DateTime                 @updatedAt @map("updated_at")
+  deletedAt  DateTime?                @map("deleted_at")
 
-  productId String  @map("product_id") @db.Uuid
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@map("skus")
+  @@index([quantity])
+  @@map("company_products")
 }
 
-// =========================================================================================
-// ENUMS
-// =========================================================================================
+enum UserStatusType {
+  ACTIVE
+  INACTIVE
+}
 
-enum StrategyStatusType {
+enum AuthenticationStatusType {
+  PENDING
+  ACTIVE
+  INACTIVE
+}
+
+enum CategoryStatusType {
   ACTIVE
   INACTIVE
   DELETED
-
-  @@map("strategy_status_type")
 }
 
-enum SkuStatusType {
-  ACTIVE
-  INACTIVE
-  DELETED
-
-  @@map("sku_status_type")
-}
-
-enum PlaceStrategyStatusType {
-  ACTIVE
-  INACTIVE
-  DELETED
-
-  @@map("place_strategy_status_type")
-}
-
-enum StrategySkuStatusType {
-  ACTIVE
-  INACTIVE
-  DELETED
-
-  @@map("strategy_sku_status_type")
-}
-
-enum BrandStatusType {
-  ACTIVE
-  INACTIVE
-  DELETED
-
-  @@map("brand_status_type")
+enum UserType {
+  ADMIN
+  EMPLOYEE
+  CLIENT
 }
 
 enum ProductStatusType {
   ACTIVE
   INACTIVE
   DELETED
-
-  @@map("product_status_type")
 }
 
-enum UserStatusType {
-  VALIDATION
+enum CompanyStatusType {
   ACTIVE
   INACTIVE
   DELETED
-
-  @@map("user_status_type")
 }
 
-enum UserPlaceStatusType {
+enum CompanyProductStatusType {
   ACTIVE
   INACTIVE
   DELETED
-
-  @@map("user_place_status_type")
 }
 
-enum PlaceStatusType {
+enum ProductDiscountType {
   ACTIVE
   INACTIVE
   DELETED
-
-  @@map("place_status_type")
-}
-
-enum ThemeType {
-  DEFAULT
-  DARK
-
-  @@map("theme_type")
-}
-
-enum GenderType {
-  UNDEFINED
-  MALE
-  FEMALE
-
-  @@map("gender_type")
-}
-
-enum AuthType {
-  EMAIL
-  PHONE_NUMBER
-  FACEBOOK
-  GOOGLE
-  TWITCH
-
-  @@map("auth_type")
-}
-
-enum InviteStatusType {
-  ACTIVE
-  PENDING
-  DECLINED
-  DELETED
-
-  @@map("invite_status_type")
 }

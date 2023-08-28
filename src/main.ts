@@ -1,18 +1,27 @@
-import { ValidationPipe } from '@nestjs/common';
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { AppModule } from './app.module';
 import {
-  SwaggerModule,
   DocumentBuilder,
   SwaggerDocumentOptions,
+  SwaggerModule,
 } from '@nestjs/swagger';
-
-import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { JwtAuthGuard } from './shared/modules/auth';
+import { json, urlencoded } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
+
   app.enableCors();
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+
+  const reflector = app.get(Reflector);
+
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   const config = new DocumentBuilder()
     .setTitle('api.nearstore')
@@ -31,6 +40,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT || 3000);
+  await app.listen(process.env.APP_PORT || 3001);
 }
 bootstrap();
