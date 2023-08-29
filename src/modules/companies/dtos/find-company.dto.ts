@@ -10,7 +10,7 @@ import { CompanyStatusType } from '@prisma/client';
 
 export class FindCompanyDto extends PaginationDto {
   @SlugDecorator({ required: false, minLength: 3 })
-  slug?: string;
+  label?: string;
 
   @SubdomainDecorator({ required: false })
   subdomain?: string;

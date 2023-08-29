@@ -67,7 +67,7 @@ model Company {
   updatedAt         DateTime          @updatedAt @map("updated_at")
   deletedAt         DateTime?         @map("deleted_at")
 
-  companyProducts CompanyProduct[]
+  products Product[]
 
   @@index([slug])
   @@index([subdomain])
@@ -89,8 +89,8 @@ model Category {
   updatedAt DateTime           @updatedAt @map("updated_at")
   deletedAt DateTime?          @map("deleted_at")
 
-  parents         Category[]       @relation("parent")
-  companyProducts CompanyProduct[]
+  parents  Category[] @relation("parent")
+  products Product[]
 
   @@index([slug])
   @@map("categories")
@@ -102,36 +102,22 @@ model Product {
   description String?
   slug        String
   cover       String?
+  unlimited   Boolean
+  quantity    Int
+  price       Int
   status      ProductStatusType @default(ACTIVE)
   ownerId     String            @map("owner_id") @db.Uuid
+  companyId   String            @map("company_id") @db.Uuid
+  company     Company           @relation(fields: [companyId], references: [id])
+  categoryId  String            @map("category_id") @db.Uuid
+  category    Category          @relation(fields: [categoryId], references: [id])
   owner       User              @relation(fields: [ownerId], references: [id])
   createdAt   DateTime          @default(now()) @map("created_at")
   updatedAt   DateTime          @updatedAt @map("updated_at")
   deletedAt   DateTime?         @map("deleted_at")
 
-  companyProducts CompanyProduct[]
-
   @@index([slug])
   @@map("products")
-}
-
-model CompanyProduct {
-  id         String                   @id @default(uuid()) @db.Uuid
-  quantity   Int
-  price      Int
-  status     CompanyProductStatusType @default(ACTIVE)
-  companyId  String                   @map("company_id") @db.Uuid
-  company    Company                  @relation(fields: [companyId], references: [id])
-  productId  String                   @map("product_id") @db.Uuid
-  product    Product                  @relation(fields: [productId], references: [id])
-  categoryId String                   @map("category_id") @db.Uuid
-  category   Category                 @relation(fields: [categoryId], references: [id])
-  createdAt  DateTime                 @default(now()) @map("created_at")
-  updatedAt  DateTime                 @updatedAt @map("updated_at")
-  deletedAt  DateTime?                @map("deleted_at")
-
-  @@index([quantity])
-  @@map("company_products")
 }
 
 enum UserStatusType {
@@ -164,12 +150,6 @@ enum ProductStatusType {
 }
 
 enum CompanyStatusType {
-  ACTIVE
-  INACTIVE
-  DELETED
-}
-
-enum CompanyProductStatusType {
   ACTIVE
   INACTIVE
   DELETED

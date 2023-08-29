@@ -26,12 +26,13 @@ export class ProductsService {
     createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
     const ownerId = user.ownerId;
-    const { label, description, cover, status } = createProductDto;
+    const { companyId, label, description, cover, status } = createProductDto;
     const slug = Slug(label);
 
     let product = await this.prismaService.product.findFirst({
       where: {
         ownerId,
+        companyId,
         slug,
         status: { not: ProductStatusType.DELETED },
       },
@@ -124,7 +125,7 @@ export class ProductsService {
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
     const ownerId = user.ownerId;
-    const { label, status } = findProductDto;
+    const { label, status, categoryId } = findProductDto;
     const where: any = {
       ownerId,
       status: { not: ProductStatusType.DELETED },
@@ -139,6 +140,10 @@ export class ProductsService {
       where.status = status;
     }
 
+    if (categoryId) {
+      where.categoryId = categoryId;
+    }
+
     let products = [];
     const total = await this.prismaService.product.count({
       where,
@@ -147,6 +152,7 @@ export class ProductsService {
     if (total !== 0) {
       products = await this.prismaService.product.findMany({
         where,
+        include: { category: true },
         skip: paginationData.skip,
         take: paginationData.limit,
       });

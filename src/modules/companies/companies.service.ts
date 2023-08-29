@@ -1,28 +1,16 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
-import {
-  CompanyProductStatusType,
-  CompanyStatusType,
-  User,
-} from '@prisma/client';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { CompanyStatusType, User } from '@prisma/client';
 import { PrismaService, PaginationDto, BucketsService } from '@App/shared';
 import {
   CheckSubdomainDto,
   CheckSubdomainResultDto,
   CreateCompanyDto,
   FindCompanyDto,
-  FindCompanyProductDto,
   FindCompanyResultDto,
   UpdateCompanyDto,
 } from './dtos';
-import { CompanyEntity, CompanyProductEntity } from './entities';
+import { CompanyEntity } from './entities';
 import { randomUUID } from 'crypto';
-import { UpsertCompanyProductDto } from './dtos/company-product/upsert-company-product.dto';
-import { FindCompanyProductResultDto } from './dtos/company-product/find-company-product-result.dto';
 import Slug from 'slug';
 
 @Injectable()
@@ -91,7 +79,10 @@ export class CompaniesService {
     }
 
     if (subdomain) {
-      const checkExisting = await this.checkSubdomain({ subdomain, id });
+      const checkExisting = await this.checkSubdomain({
+        subdomain,
+        companyId: id,
+      });
       if (!checkExisting.available) {
         throw new BadRequestException(
           'Já existe uma empresa com esse subdomínio.',
@@ -136,8 +127,8 @@ export class CompaniesService {
       FindCompanyDto as PaginationDto,
     );
 
-    if (findCompanyDto.slug) {
-      where.slug = { startsWith: findCompanyDto.slug };
+    if (findCompanyDto.label) {
+      where.slug = { startsWith: Slug(findCompanyDto.label) };
     }
 
     if (findCompanyDto.subdomain) {
@@ -224,7 +215,7 @@ export class CompaniesService {
   async checkSubdomain(
     checkSubdomainDto: CheckSubdomainDto,
   ): Promise<CheckSubdomainResultDto> {
-    const { id, subdomain } = checkSubdomainDto;
+    const { companyId: id, subdomain } = checkSubdomainDto;
     const where: any = {
       subdomain,
       status: { not: CompanyStatusType.DELETED },
@@ -239,134 +230,5 @@ export class CompaniesService {
       available: !company,
       suggestions: [],
     };
-  }
-
-  async upsertProduct(
-    user: User,
-    upsertCompanyProductDto: UpsertCompanyProductDto,
-  ): Promise<CompanyProductEntity> {
-    const { ownerId } = user;
-    const { id, ...updateData } = upsertCompanyProductDto;
-    const { productId, companyId } = upsertCompanyProductDto;
-
-    const product = await this.prismaService.product.findFirst({
-      where: { id: productId, ownerId },
-    });
-
-    if (!product) {
-      throw new HttpException(
-        'Produto não encontrado.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const company = await this.prismaService.company.findFirst({
-      where: { id: companyId, ownerId },
-    });
-
-    if (!company) {
-      throw new HttpException(
-        'Empresa não encontrado.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const where: any = { productId, companyId };
-
-    if (id) {
-      where.id = id;
-    }
-
-    const companyProduct = await this.prismaService.companyProduct.upsert({
-      where,
-      update: updateData,
-      create: updateData,
-      include: { product: true, category: true },
-    });
-
-    return new CompanyProductEntity(companyProduct);
-  }
-
-  async getProduct(id: string): Promise<CompanyProductEntity> {
-    const companyProduct = await this.prismaService.companyProduct.findFirst({
-      where: { id, status: { not: CompanyProductStatusType.DELETED } },
-    });
-
-    if (!companyProduct) {
-      throw new HttpException(
-        'Produto não encontrado.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    return new CompanyProductEntity(companyProduct);
-  }
-
-  async findProduct(
-    findCompanyProductDto: FindCompanyProductDto,
-  ): Promise<FindCompanyProductResultDto> {
-    const { companyId, slug, status } = findCompanyProductDto;
-    const where: any = { status: { not: CompanyProductStatusType.DELETED } };
-
-    if (companyId) {
-      where.companyId = companyId;
-    }
-
-    if (slug) {
-      where.slug = { startsWith: slug };
-    }
-
-    if (status) {
-      where.status = status;
-    }
-
-    let companyProducts = [];
-    const paginationData = FindCompanyProductDto.getPaginationParams(
-      findCompanyProductDto,
-    );
-
-    const total = await this.prismaService.companyProduct.count({
-      where,
-      skip: paginationData.skip,
-    });
-
-    if (total !== 0) {
-      companyProducts = await this.prismaService.companyProduct.findMany({
-        where,
-        include: { product: true, category: true },
-        skip: paginationData.skip,
-        take: paginationData.limit,
-      });
-    }
-
-    return {
-      page: paginationData.page,
-      limit: paginationData.limit,
-      total,
-      data: companyProducts.map((cp) => new CompanyProductEntity(cp)) || [],
-    };
-  }
-
-  async deleteProduct(id: string): Promise<CompanyProductEntity> {
-    let companyProduct = await this.prismaService.companyProduct.findFirst({
-      where: { id, status: { not: CompanyProductStatusType.DELETED } },
-    });
-
-    if (!companyProduct) {
-      throw new HttpException(
-        'Produto não encontrado.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    companyProduct = await this.prismaService.companyProduct.update({
-      where: { id: companyProduct.id },
-      data: {
-        status: CompanyProductStatusType.DELETED,
-        deletedAt: new Date(),
-      },
-    });
-
-    return new CompanyProductEntity(companyProduct);
   }
 }

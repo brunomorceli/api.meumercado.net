@@ -8,8 +8,11 @@ import {
 import { ProductStatusType } from '@prisma/client';
 
 export class FindProductDto extends PaginationDto {
-  @UuidDecorator({ description: 'Parent ID', required: false })
-  parentId?: string;
+  @UuidDecorator({ required: false })
+  clientId?: string;
+
+  @UuidDecorator({ required: false })
+  categoryId?: string;
 
   @StringDecorator({ required: false, minLength: 3 })
   label?: string;

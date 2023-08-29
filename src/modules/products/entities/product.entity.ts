@@ -1,7 +1,11 @@
+import { CategoryEntity } from '@App/modules/categories';
 import {
+  BooleanDecorator,
   DateDecorator,
   EnumDecorator,
   ImageDecorator,
+  NumberDecorator,
+  ObjectDecorator,
   StringDecorator,
   UuidDecorator,
 } from '@App/shared';
@@ -20,6 +24,21 @@ export class ProductEntity {
   @StringDecorator()
   slug: string;
 
+  @BooleanDecorator()
+  unlimited: boolean;
+
+  @NumberDecorator({ min: 1 })
+  quantity: number;
+
+  @NumberDecorator({ min: 0 })
+  price: number;
+
+  @UuidDecorator()
+  companyId: string;
+
+  @ObjectDecorator({ type: CategoryEntity })
+  category: CategoryEntity;
+
   @EnumDecorator({
     enumType: ProductStatusType,
     default: ProductStatusType.ACTIVE,
@@ -32,7 +51,11 @@ export class ProductEntity {
   @DateDecorator({ description: 'Creating date.' })
   createdAt: string;
 
+  @DateDecorator({ description: 'Delete date.', required: false })
+  deletedAt?: string;
+
   constructor(data: Product | any) {
     Object.keys(data).forEach((key) => (this[key] = data[key]));
+    this.category = new CategoryEntity(data.category);
   }
 }
