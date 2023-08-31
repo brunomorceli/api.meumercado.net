@@ -56,6 +56,11 @@ export class CompaniesController {
     return this.companiesService.find(findCompanyDto);
   }
 
+  @Get('find-by-owner')
+  findByOwner(@Req() req: any): Promise<FindCompanyResultDto> {
+    return this.companiesService.findByOwner(req.user.ownerId);
+  }
+
   @Delete(':id')
   delete(@Req() req: any, @Param() props: IdParamDto): Promise<void> {
     return this.companiesService.delete(req.user, props.id);

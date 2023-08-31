@@ -60,6 +60,7 @@ model Company {
   state             String
   cep               String
   logo              String?
+  phoneNumber       String            @map("phone_number")
   status            CompanyStatusType @default(ACTIVE)
   ownerId           String            @map("owner_id") @db.Uuid
   owner             User              @relation(fields: [ownerId], references: [id])

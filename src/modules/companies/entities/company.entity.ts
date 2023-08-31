@@ -4,6 +4,7 @@ import {
   EnumDecorator,
   ImageDecorator,
   NumberDecorator,
+  PhoneNumberDecorator,
   SlugDecorator,
   StringDecorator,
   SubdomainDecorator,
@@ -48,6 +49,9 @@ export class CompanyEntity {
 
   @CepDecorator()
   cep: string;
+
+  @PhoneNumberDecorator({ onlyNumbers: true, empty: true })
+  phoneNumber: string;
 
   @ImageDecorator({ required: false })
   logo?: string;

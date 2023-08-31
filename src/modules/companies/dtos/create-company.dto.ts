@@ -38,6 +38,9 @@ export class CreateCompanyDto {
   @CepDecorator()
   cep: string;
 
+  @StringDecorator()
+  phoneNumber: string;
+
   @ImageDecorator({ description: 'Image', required: false })
   logo?: string;
 }

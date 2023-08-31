@@ -5,10 +5,14 @@ import {
   StringDecorator,
   SubdomainDecorator,
   UFDecorator,
+  UuidDecorator,
 } from '@App/shared';
 import { CompanyStatusType } from '@prisma/client';
 
 export class FindCompanyDto extends PaginationDto {
+  @UuidDecorator({ required: false })
+  ownerId?: string;
+
   @SlugDecorator({ required: false, minLength: 3 })
   label?: string;
 

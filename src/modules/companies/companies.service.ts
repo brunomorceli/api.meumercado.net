@@ -133,6 +133,10 @@ export class CompaniesService {
       FindCompanyDto as PaginationDto,
     );
 
+    if (findCompanyDto.ownerId) {
+      where.ownerId = findCompanyDto.ownerId;
+    }
+
     if (findCompanyDto.label) {
       where.slug = { startsWith: Slug(findCompanyDto.label) };
     }
@@ -196,6 +200,10 @@ export class CompaniesService {
       total,
       data: companies.map((c) => new CompanyEntity(c)) || [],
     };
+  }
+
+  async findByOwner(ownerId: string): Promise<FindCompanyResultDto> {
+    return this.find({ ownerId });
   }
 
   async delete(user: User, id: string): Promise<void> {

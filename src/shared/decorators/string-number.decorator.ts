@@ -17,11 +17,11 @@ export const StringNumberDecorator = (
     }),
   ];
 
-  if (data && data && data.empty !== true) {
+  if (data && data.empty !== true) {
     decorators.push(IsNotEmpty());
   }
 
-  if (data && data && data.required === false) {
+  if (data && data.required === false) {
     decorators.push(IsOptional());
   }
 

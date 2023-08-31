@@ -3,7 +3,9 @@ import {
   EnumDecorator,
   ImageDecorator,
   NumberDecorator,
+  PhoneNumberDecorator,
   StringDecorator,
+  StringNumberDecorator,
   SubdomainDecorator,
   UFDecorator,
   UuidDecorator,
@@ -26,8 +28,8 @@ export class UpdateCompanyDto {
   @StringDecorator({ required: false })
   address?: string;
 
-  @StringDecorator({ required: false })
-  addressComplement?: string;
+  @StringDecorator()
+  addressComplement: string;
 
   @StringDecorator({ required: false })
   neighborhood?: string;
@@ -43,6 +45,9 @@ export class UpdateCompanyDto {
 
   @CepDecorator({ required: false })
   cep?: string;
+
+  @StringDecorator()
+  phoneNumber: string;
 
   @ImageDecorator({ description: 'Image', required: false })
   logo?: string;
