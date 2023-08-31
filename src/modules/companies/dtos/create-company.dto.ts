@@ -1,6 +1,6 @@
 import {
   CepDecorator,
-  HexadecimalDecorator,
+  ImageDecorator,
   NumberDecorator,
   StringDecorator,
   SubdomainDecorator,
@@ -20,8 +20,8 @@ export class CreateCompanyDto {
   @StringDecorator()
   address: string;
 
-  @StringDecorator({ required: false })
-  addressComplement?: string;
+  @StringDecorator()
+  addressComplement: string;
 
   @StringDecorator()
   neighborhood: string;
@@ -38,6 +38,6 @@ export class CreateCompanyDto {
   @CepDecorator()
   cep: string;
 
-  @HexadecimalDecorator({ description: 'Image cover', required: false })
-  blob?: string;
+  @ImageDecorator({ description: 'Image', required: false })
+  logo?: string;
 }

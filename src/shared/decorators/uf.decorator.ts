@@ -1,29 +1,55 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
-import { Regex } from '../utils';
+import { IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
 import { DefaultPropertyDecoratorOptions } from './default-property-decorator-options';
 
+export enum EBrazilianUF {
+  AC = 'AC',
+  AL = 'AL',
+  AP = 'AP',
+  AM = 'AM',
+  BA = 'BA',
+  CE = 'CE',
+  DF = 'DF',
+  ES = 'ES',
+  GO = 'GO',
+  MA = 'MA',
+  MT = 'MT',
+  MS = 'MS',
+  MG = 'MG',
+  PA = 'PA',
+  PB = 'PB',
+  PR = 'PR',
+  PE = 'PE',
+  PI = 'PI',
+  RJ = 'RJ',
+  RN = 'RN',
+  RS = 'RS',
+  RO = 'RO',
+  RR = 'RR',
+  SC = 'SC',
+  SP = 'SP',
+  SE = 'SE',
+  TO = 'TO',
+}
+
 export const UFDecorator = (data?: DefaultPropertyDecoratorOptions) => {
+  const keys = Object.keys(EBrazilianUF);
   const decorators = [
-    IsString(),
-    Matches(Regex.UF),
+    IsEnum(EBrazilianUF),
     ApiProperty({
-      description: 'Brazilian FU code',
-      type: String,
-      pattern: RegExp(Regex.UF).toString(),
-      example: '',
-      ...data,
+      description: `Brazilian UF - valid options: [${keys.join(', ')}]`,
+      example: keys[0],
     }),
   ];
 
-  if (data && data.empty !== true) {
+  if (data?.empty !== true) {
     decorators.push(IsNotEmpty());
   }
 
-  if (data && data.required === false) {
+  if (data?.required === false) {
     decorators.push(IsOptional());
   }
 
-  return applyDecorators(...decorators, ...((data || {}).decorators || []));
+  return applyDecorators(...decorators);
 };

@@ -11,7 +11,7 @@ import {
 } from './dtos';
 import { CompanyEntity } from './entities';
 import { randomUUID } from 'crypto';
-import Slug from 'slug';
+import * as Slug from 'slug';
 
 @Injectable()
 export class CompaniesService {
@@ -27,7 +27,7 @@ export class CompaniesService {
     createCompanyDto: CreateCompanyDto,
   ): Promise<CompanyEntity> {
     const ownerId = user.ownerId;
-    const { blob, subdomain } = createCompanyDto;
+    const { logo, subdomain } = createCompanyDto;
 
     const checkExisting = await this.checkSubdomain({ subdomain });
     if (!checkExisting.available) {
@@ -43,13 +43,12 @@ export class CompaniesService {
       slug: Slug(createCompanyDto.label),
     };
 
-    if (blob) {
+    if (logo && logo.indexOf('data:image') === 0) {
       await this.bucketService.uploadImage(
         this.bucketName,
         creatingData.id,
-        blob,
+        logo,
       );
-
       creatingData.logo = this.bucketService.getImageUrl(
         this.bucketName,
         creatingData.id,
@@ -68,7 +67,7 @@ export class CompaniesService {
     updateCompanyDto: UpdateCompanyDto,
   ): Promise<CompanyEntity> {
     const ownerId = user.ownerId;
-    const { id, label, blob, subdomain } = updateCompanyDto;
+    const { id, label, logo, subdomain } = updateCompanyDto;
 
     let company = await this.prismaService.company.findFirst({
       where: { ownerId, id, status: { not: CompanyStatusType.DELETED } },
@@ -96,9 +95,16 @@ export class CompaniesService {
       updateData.slug = Slug(label);
     }
 
-    if (blob) {
-      await this.bucketService.uploadImage(this.bucketName, id, blob);
-      updateData.logo = this.bucketService.getImageUrl(this.bucketName, id);
+    if (logo && logo.indexOf('data:image') === 0) {
+      await this.bucketService.uploadImage(
+        this.bucketName,
+        updateData.id,
+        logo,
+      );
+      updateCompanyDto.logo = this.bucketService.getImageUrl(
+        this.bucketName,
+        updateData.id,
+      );
     }
 
     company = await this.prismaService.company.update({
@@ -215,17 +221,17 @@ export class CompaniesService {
   async checkSubdomain(
     checkSubdomainDto: CheckSubdomainDto,
   ): Promise<CheckSubdomainResultDto> {
-    const { companyId: id, subdomain } = checkSubdomainDto;
+    const { companyId, subdomain } = checkSubdomainDto;
     const where: any = {
       subdomain,
       status: { not: CompanyStatusType.DELETED },
     };
 
-    if (id) {
-      where.id = { not: id };
+    if (companyId) {
+      where.id = { not: companyId };
     }
 
-    const company = await this.prismaService.company.findFirst(where);
+    const company = await this.prismaService.company.findFirst({ where });
     return {
       available: !company,
       suggestions: [],

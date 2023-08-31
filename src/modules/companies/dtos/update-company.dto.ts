@@ -1,7 +1,7 @@
 import {
   CepDecorator,
   EnumDecorator,
-  HexadecimalDecorator,
+  ImageDecorator,
   NumberDecorator,
   StringDecorator,
   SubdomainDecorator,
@@ -44,8 +44,8 @@ export class UpdateCompanyDto {
   @CepDecorator({ required: false })
   cep?: string;
 
-  @HexadecimalDecorator({ description: 'Image cover', required: false })
-  blob?: string;
+  @ImageDecorator({ description: 'Image', required: false })
+  logo?: string;
 
   @EnumDecorator({ enumType: CompanyStatusType, required: false })
   status?: CompanyStatusType;

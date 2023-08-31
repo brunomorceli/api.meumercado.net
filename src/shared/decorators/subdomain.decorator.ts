@@ -7,7 +7,9 @@ import { DefaultPropertyDecoratorOptions } from './default-property-decorator-op
 export const SubdomainDecorator = (data?: DefaultPropertyDecoratorOptions) => {
   const decorators = [
     IsString(),
-    Matches(Regex.SUBDOMAIN),
+    Matches(Regex.SUBDOMAIN, {
+      message: 'O subdomínio deve iniciar com letras.',
+    }),
     ApiProperty({
       description: 'Subdomain format',
       type: String,

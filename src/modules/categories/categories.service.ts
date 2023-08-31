@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CategoryStatusType, User } from '@prisma/client';
 import { PrismaService, PaginationDto } from '@App/shared';
-import Slug from 'slug';
+import * as Slug from 'slug';
 import {
   CreateCategoryDto,
   FindCategoryDto,
