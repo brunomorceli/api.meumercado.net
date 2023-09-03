@@ -94,6 +94,7 @@ model Category {
   products Product[]
 
   @@index([slug])
+  @@unique([slug, ownerId], name: "slug_owner")
   @@map("categories")
 }
 

@@ -55,6 +55,22 @@ export class CompaniesService {
       );
     }
 
+    await this.prismaService.category.upsert({
+      where: {
+        slug_owner: {
+          slug: 'geral',
+          ownerId,
+        },
+      },
+      create: {
+        color: '#d9d9d9',
+        label: 'Geral',
+        slug: 'geral',
+        ownerId,
+      },
+      update: {},
+    });
+
     const company = await this.prismaService.company.create({
       data: creatingData,
     });
