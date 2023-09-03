@@ -54,7 +54,7 @@ export class ProductsController {
     @Req() req,
     @Query() findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
-    console.log(res.locals.subdomain);
+    console.log('subdomain:', res.locals.subdomain);
     return this.productsService.find(req.user, findProductDto);
   }
 

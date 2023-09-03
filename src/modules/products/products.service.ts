@@ -26,7 +26,17 @@ export class ProductsService {
     createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
     const ownerId = user.ownerId;
-    const { companyId, label, description, cover, status } = createProductDto;
+    const {
+      companyId,
+      label,
+      price,
+      quantity,
+      unlimited,
+      description,
+      cover,
+      status,
+      categoryId,
+    } = createProductDto;
     const slug = Slug(label);
 
     let product = await this.prismaService.product.findFirst({
@@ -42,6 +52,14 @@ export class ProductsService {
       throw new BadRequestException('Já existe um produto com este nome.');
     }
 
+    const company = await this.prismaService.company.findFirst({
+      where: { id: companyId },
+    });
+
+    if (!company) {
+      throw new BadRequestException('Erro ao buscar empresa.');
+    }
+
     const data: any = {
       id: randomUUID(),
       label,
@@ -49,6 +67,11 @@ export class ProductsService {
       slug,
       status: status || ProductStatusType.ACTIVE,
       ownerId,
+      price,
+      quantity,
+      unlimited,
+      companyId,
+      categoryId,
     };
 
     if (cover) {
@@ -56,7 +79,10 @@ export class ProductsService {
       data.cover = this.bucketsService.getImageUrl(this.bucketName, data.id);
     }
 
-    product = await this.prismaService.product.create({ data });
+    product = await this.prismaService.product.create({
+      data,
+      include: { category: true },
+    });
 
     return new ProductEntity(product);
   }
@@ -101,6 +127,7 @@ export class ProductsService {
     product = await this.prismaService.product.update({
       where: { id },
       data: { ...updateData, slug, cover: newCover || product.cover },
+      include: { category: true },
     });
 
     return new ProductEntity(product);
