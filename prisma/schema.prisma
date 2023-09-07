@@ -20,7 +20,7 @@ model User {
   owner     User?          @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   authentications Authentication[]
-  companies       Company[]
+  company         Company?
   products        Product[]
   owners          User[]           @relation("owner")
 
@@ -32,7 +32,7 @@ model Authentication {
   id                    String                   @id @default(uuid()) @db.Uuid
   userId                String?                  @map("user_id") @db.Uuid
   user                  User?                    @relation(fields: [userId], references: [id])
-  confirmationCode      String?                  @unique
+  confirmationCode      String?                  @map("confirmation_code")
   metadata              Json?
   status                AuthenticationStatusType @default(PENDING)
   createdAt             DateTime                 @default(now()) @map("created_at")
@@ -51,52 +51,49 @@ model Company {
   slug              String
   subdomain         String
   description       String?
-  address           String
+  address           String?
   addressComplement String?           @map("address_complement")
-  neighborhood      String
-  addressNumber     Int               @map("address_number")
-  city              String
-  state             String
-  cep               String
+  neighborhood      String?
+  addressNumber     Int?              @map("address_number")
+  city              String?
+  state             String?
+  cep               String?
   logo              String?
-  phoneNumber       String            @map("phone_number")
-  status            CompanyStatusType @default(ACTIVE)
+  phoneNumber       String?           @map("phone_number")
   categories        Json
-  ownerId           String            @map("owner_id") @db.Uuid
+  status            CompanyStatusType @default(ACTIVE)
+  ownerId           String            @unique @map("owner_id") @db.Uuid
   owner             User              @relation(fields: [ownerId], references: [id])
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
   deletedAt         DateTime?         @map("deleted_at")
 
-  products Product[]
-
   @@index([slug])
   @@index([subdomain])
-  @@unique([ownerId])
   @@map("companies")
 }
 
 model Product {
-  id          String            @id @default(uuid()) @db.Uuid
-  label       String
-  description String?
-  slug        String
-  cover       String?
-  unlimited   Boolean
-  quantity    Int
-  price       Int
-  barcode     String
-  status      ProductStatusType @default(ACTIVE)
-  ownerId     String            @map("owner_id") @db.Uuid
-  companyId   String            @map("company_id") @db.Uuid
-  company     Company           @relation(fields: [companyId], references: [id])
-  categories String[] @default([]) @db.Uuid
-  owner       User              @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  deletedAt   DateTime?         @map("deleted_at")
+  id            String            @id @default(uuid()) @db.Uuid
+  label         String
+  description   String?
+  slug          String
+  cover         String?
+  quantity      Int?
+  price         Int
+  discountPrice Int?              @map("discount_price")
+  sku           String?
+  barcode       String?
+  status        ProductStatusType @default(ACTIVE)
+  categories    String[]          @default([]) @db.Uuid
+  ownerId       String            @map("owner_id") @db.Uuid
+  owner         User              @relation(fields: [ownerId], references: [id])
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  deletedAt     DateTime?         @map("deleted_at")
 
   @@index([slug])
+  @@index([sku])
   @@index([barcode])
   @@index([categories])
   @@map("products")
@@ -111,12 +108,6 @@ enum AuthenticationStatusType {
   PENDING
   ACTIVE
   INACTIVE
-}
-
-enum CategoryStatusType {
-  ACTIVE
-  INACTIVE
-  DELETED
 }
 
 enum UserType {

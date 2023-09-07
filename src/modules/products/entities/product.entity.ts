@@ -1,11 +1,10 @@
-import { CategoryEntity } from '@App/modules/categories';
 import {
+  ArrayDecorator,
   BooleanDecorator,
   DateDecorator,
   EnumDecorator,
   ImageDecorator,
   NumberDecorator,
-  ObjectDecorator,
   StringDecorator,
   UuidDecorator,
 } from '@App/shared';
@@ -33,11 +32,20 @@ export class ProductEntity {
   @NumberDecorator({ min: 0 })
   price: number;
 
+  @NumberDecorator({ required: false })
+  discountPrice?: number;
+
+  @StringDecorator({ required: false })
+  sku?: string;
+
+  @StringDecorator({ required: false })
+  barcode?: string;
+
   @UuidDecorator()
   companyId: string;
 
-  @ObjectDecorator({ type: CategoryEntity })
-  category: CategoryEntity;
+  @ArrayDecorator({ type: String })
+  category: string[];
 
   @EnumDecorator({
     enumType: ProductStatusType,
@@ -56,6 +64,5 @@ export class ProductEntity {
 
   constructor(data: Product | any) {
     Object.keys(data).forEach((key) => (this[key] = data[key]));
-    this.category = new CategoryEntity(data.category);
   }
 }

@@ -27,22 +27,20 @@ export class ProductsService {
   ): Promise<ProductEntity> {
     const ownerId = user.ownerId;
     const {
-      companyId,
       label,
       price,
       quantity,
       unlimited,
       description,
       cover,
+      categories,
       status,
-      categoryId,
     } = createProductDto;
     const slug = Slug(label);
 
     let product = await this.prismaService.product.findFirst({
       where: {
         ownerId,
-        companyId,
         slug,
         status: { not: ProductStatusType.DELETED },
       },
@@ -50,14 +48,6 @@ export class ProductsService {
 
     if (Boolean(product)) {
       throw new BadRequestException('Já existe um produto com este nome.');
-    }
-
-    const company = await this.prismaService.company.findFirst({
-      where: { id: companyId },
-    });
-
-    if (!company) {
-      throw new BadRequestException('Erro ao buscar empresa.');
     }
 
     const data: any = {
@@ -70,8 +60,7 @@ export class ProductsService {
       price,
       quantity,
       unlimited,
-      companyId,
-      categoryId,
+      categories,
     };
 
     if (cover) {
@@ -79,10 +68,7 @@ export class ProductsService {
       data.cover = this.bucketsService.getImageUrl(this.bucketName, data.id);
     }
 
-    product = await this.prismaService.product.create({
-      data,
-      include: { category: true },
-    });
+    product = await this.prismaService.product.create({ data });
 
     return new ProductEntity(product);
   }
@@ -127,7 +113,6 @@ export class ProductsService {
     product = await this.prismaService.product.update({
       where: { id },
       data: { ...updateData, slug, cover: newCover || product.cover },
-      include: { category: true },
     });
 
     return new ProductEntity(product);
@@ -168,7 +153,7 @@ export class ProductsService {
     }
 
     if (categoryId) {
-      where.categoryId = categoryId;
+      where.categories = { has: categoryId };
     }
 
     let products = [];
@@ -179,7 +164,6 @@ export class ProductsService {
     if (total !== 0) {
       products = await this.prismaService.product.findMany({
         where,
-        include: { category: true },
         skip: paginationData.skip,
         take: paginationData.limit,
       });

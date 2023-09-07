@@ -1,4 +1,5 @@
 import {
+  ArrayDecorator,
   CepDecorator,
   DateDecorator,
   EnumDecorator,
@@ -12,6 +13,7 @@ import {
   UuidDecorator,
 } from '@App/shared';
 import { Company, CompanyStatusType } from '@prisma/client';
+import { CategoryDto } from '../dtos';
 
 export class CompanyEntity {
   @UuidDecorator()
@@ -55,6 +57,9 @@ export class CompanyEntity {
 
   @ImageDecorator({ required: false })
   logo?: string;
+
+  @ArrayDecorator({ type: CategoryDto })
+  categories: CategoryDto[];
 
   @EnumDecorator({ enumType: CompanyStatusType })
   status: CompanyStatusType;

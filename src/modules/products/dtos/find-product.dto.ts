@@ -29,4 +29,10 @@ export class FindProductDto extends PaginationDto {
 
   @NumberDecorator({ required: false })
   size?: number;
+
+  @StringDecorator({ required: false })
+  sku?: string;
+
+  @StringDecorator({ required: false })
+  barcode?: string;
 }

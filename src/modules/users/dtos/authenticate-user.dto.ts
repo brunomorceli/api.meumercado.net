@@ -1,13 +1,9 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional } from 'class-validator';
+import { EmailDecorator, StringDecorator } from '@App/shared';
 
 export class AuthenticateUserDto {
-  @ApiProperty({
-    example: 'email@email.com',
-    required: false,
-    description: 'email',
-  })
-  @IsEmail()
-  @IsOptional()
-  public email?: string;
+  @EmailDecorator()
+  email: string;
+
+  @StringDecorator({ required: false })
+  label: string;
 }

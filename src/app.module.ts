@@ -4,12 +4,7 @@ import { BucketsModule, SubdomainMiddleware } from './shared';
 import { CompaniesModule } from './modules/companies';
 
 @Module({
-  imports: [
-    BucketsModule,
-    UsersModule,
-    CompaniesModule,
-    ProductsModule,
-  ],
+  imports: [BucketsModule, UsersModule, CompaniesModule, ProductsModule],
   controllers: [],
   providers: [],
 })

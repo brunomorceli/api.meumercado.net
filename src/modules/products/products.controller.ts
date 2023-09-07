@@ -8,7 +8,6 @@ import {
   Query,
   Patch,
   Delete,
-  Res,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -50,11 +49,9 @@ export class ProductsController {
 
   @Get('find')
   find(
-    @Res({ passthrough: true }) res,
     @Req() req,
     @Query() findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
-    console.log('subdomain:', res.locals.subdomain);
     return this.productsService.find(req.user, findProductDto);
   }
 

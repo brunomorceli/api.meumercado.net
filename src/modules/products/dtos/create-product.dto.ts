@@ -1,4 +1,5 @@
 import {
+  ArrayDecorator,
   BooleanDecorator,
   EnumDecorator,
   ImageDecorator,
@@ -12,8 +13,8 @@ export class CreateProductDto {
   @UuidDecorator()
   companyId: string;
 
-  @UuidDecorator()
-  categoryId: string;
+  @ArrayDecorator({ type: String })
+  categories: string[];
 
   @StringDecorator()
   label: string;
@@ -24,11 +25,20 @@ export class CreateProductDto {
   @BooleanDecorator()
   unlimited: boolean;
 
-  @NumberDecorator({ min: 1 })
-  quantity: number;
+  @NumberDecorator({ required: false })
+  quantity?: number;
 
   @NumberDecorator({ min: 0 })
   price: number;
+
+  @NumberDecorator({ required: false })
+  discountPrice?: number;
+
+  @StringDecorator({ required: false })
+  sku?: string;
+
+  @StringDecorator({ required: false })
+  barcode?: string;
 
   @EnumDecorator({
     enumType: ProductStatusType,

@@ -1,5 +1,5 @@
 import { CompanyEntity } from '@App/modules/companies';
-import { ArrayDecorator, StringDecorator } from '@App/shared';
+import { ObjectDecorator, StringDecorator } from '@App/shared';
 
 export class ConfirmAuthenticationResponseDto {
   @StringDecorator({ description: 'Access token.' })
@@ -11,6 +11,6 @@ export class ConfirmAuthenticationResponseDto {
   @StringDecorator({ description: 'User role.' })
   type: string;
 
-  @ArrayDecorator({ type: CompanyEntity })
-  companies: CompanyEntity[];
+  @ObjectDecorator({ type: CompanyEntity })
+  company: CompanyEntity;
 }

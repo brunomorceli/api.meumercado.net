@@ -1,16 +1,15 @@
 import {
+  ArrayDecorator,
   CepDecorator,
   EnumDecorator,
   ImageDecorator,
   NumberDecorator,
-  PhoneNumberDecorator,
   StringDecorator,
-  StringNumberDecorator,
-  SubdomainDecorator,
   UFDecorator,
   UuidDecorator,
 } from '@App/shared';
 import { CompanyStatusType } from '@prisma/client';
+import { CategoryDto } from './category.dto';
 
 export class UpdateCompanyDto {
   @UuidDecorator()
@@ -19,17 +18,14 @@ export class UpdateCompanyDto {
   @StringDecorator({ required: false })
   label?: string;
 
-  @SubdomainDecorator({ required: false })
-  subdomain?: string;
-
   @StringDecorator({ required: false })
   description?: string;
 
   @StringDecorator({ required: false })
   address?: string;
 
-  @StringDecorator()
-  addressComplement: string;
+  @StringDecorator({ required: false })
+  addressComplement?: string;
 
   @StringDecorator({ required: false })
   neighborhood?: string;
@@ -46,11 +42,14 @@ export class UpdateCompanyDto {
   @CepDecorator({ required: false })
   cep?: string;
 
-  @StringDecorator()
-  phoneNumber: string;
+  @StringDecorator({ required: false })
+  phoneNumber?: string;
 
   @ImageDecorator({ description: 'Image', required: false })
   logo?: string;
+
+  @ArrayDecorator({ type: CategoryDto, required: false })
+  categories?: CategoryDto[];
 
   @EnumDecorator({ enumType: CompanyStatusType, required: false })
   status?: CompanyStatusType;

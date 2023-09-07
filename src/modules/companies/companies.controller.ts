@@ -12,8 +12,6 @@ import {
 import { CompaniesService } from './companies.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
-  CheckSubdomainDto,
-  CheckSubdomainResultDto,
   CreateCompanyDto,
   FindCompanyDto,
   FindCompanyResultDto,
@@ -64,13 +62,5 @@ export class CompaniesController {
   @Delete(':id')
   delete(@Req() req: any, @Param() props: IdParamDto): Promise<void> {
     return this.companiesService.delete(req.user, props.id);
-  }
-
-  @Public()
-  @Get('check-subdomain')
-  checkSubdomain(
-    @Query() checkSubdomainDto: CheckSubdomainDto,
-  ): Promise<CheckSubdomainResultDto> {
-    return this.companiesService.checkSubdomain(checkSubdomainDto);
   }
 }

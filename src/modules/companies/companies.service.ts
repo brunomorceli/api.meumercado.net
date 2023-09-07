@@ -1,9 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from '@nestjs/common';
 import { CompanyStatusType, User } from '@prisma/client';
 import { PrismaService, PaginationDto, BucketsService } from '@App/shared';
 import {
-  CheckSubdomainDto,
-  CheckSubdomainResultDto,
   CreateCompanyDto,
   FindCompanyDto,
   FindCompanyResultDto,
@@ -23,55 +26,29 @@ export class CompaniesService {
   ) {}
 
   async create(
-    user: User,
     createCompanyDto: CreateCompanyDto,
+    prismaHandler?: any,
   ): Promise<CompanyEntity> {
-    const ownerId = user.ownerId;
-    const { logo, subdomain } = createCompanyDto;
+    const prisma = prismaHandler || this.prismaService;
+    const { email, label } = createCompanyDto;
 
-    const checkExisting = await this.checkSubdomain({ subdomain });
-    if (!checkExisting.available) {
-      throw new BadRequestException(
-        'Já existe uma empresa com esse subdomínio.',
-      );
+    const user = await prisma.user.findFirst({ where: { email } });
+    if (!user) {
+      throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
     }
+
+    const subdomain = await this.getSubdomain(label, prisma);
 
     const creatingData: any = {
-      ...createCompanyDto,
       id: randomUUID(),
-      ownerId,
-      slug: Slug(createCompanyDto.label),
+      ownerId: user.id,
+      label,
+      slug: Slug(label),
+      subdomain,
+      categories: [{ label: 'Geral', value: randomUUID() }],
     };
 
-    if (logo && logo.indexOf('data:image') === 0) {
-      await this.bucketService.uploadImage(
-        this.bucketName,
-        creatingData.id,
-        logo,
-      );
-      creatingData.logo = this.bucketService.getImageUrl(
-        this.bucketName,
-        creatingData.id,
-      );
-    }
-
-    await this.prismaService.category.upsert({
-      where: {
-        slug_owner: {
-          slug: 'geral',
-          ownerId,
-        },
-      },
-      create: {
-        color: '#d9d9d9',
-        label: 'Geral',
-        slug: 'geral',
-        ownerId,
-      },
-      update: {},
-    });
-
-    const company = await this.prismaService.company.create({
+    const company = await prisma.company.create({
       data: creatingData,
     });
 
@@ -83,7 +60,7 @@ export class CompaniesService {
     updateCompanyDto: UpdateCompanyDto,
   ): Promise<CompanyEntity> {
     const ownerId = user.ownerId;
-    const { id, label, logo, subdomain } = updateCompanyDto;
+    const { id, label, logo } = updateCompanyDto;
 
     let company = await this.prismaService.company.findFirst({
       where: { ownerId, id, status: { not: CompanyStatusType.DELETED } },
@@ -91,18 +68,6 @@ export class CompaniesService {
 
     if (!company) {
       throw new BadRequestException('Empresa não encontrada');
-    }
-
-    if (subdomain) {
-      const checkExisting = await this.checkSubdomain({
-        subdomain,
-        companyId: id,
-      });
-      if (!checkExisting.available) {
-        throw new BadRequestException(
-          'Já existe uma empresa com esse subdomínio.',
-        );
-      }
     }
 
     const updateData: any = { ...updateCompanyDto };
@@ -242,23 +207,29 @@ export class CompaniesService {
     });
   }
 
-  async checkSubdomain(
-    checkSubdomainDto: CheckSubdomainDto,
-  ): Promise<CheckSubdomainResultDto> {
-    const { companyId, subdomain } = checkSubdomainDto;
-    const where: any = {
-      subdomain,
-      status: { not: CompanyStatusType.DELETED },
-    };
+  async getSubdomain(label: string, prismaHandler?: any): Promise<string> {
+    const prisma = prismaHandler || this.prismaService;
+    const slug = Slug(label);
 
-    if (companyId) {
-      where.id = { not: companyId };
+    const company = await prisma.company.findFirst({
+      where: { slug },
+    });
+
+    if (!company) {
+      return slug;
     }
 
-    const company = await this.prismaService.company.findFirst({ where });
-    return {
-      available: !company,
-      suggestions: [],
-    };
+    const raw: any = await prisma.$queryRaw`
+      select slug
+      from companies
+      where slug ~ '^${slug}[0-9]+$' order by id desc limit 1;
+    `;
+
+    if (!raw || raw.length === 0) {
+      return `${slug}1`;
+    }
+
+    const last: number = Number(raw[0].slug.replace(/[^0-9]/g, ''));
+    return `${slug}${last + 1}`;
   }
 }
