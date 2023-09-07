@@ -1,5 +1,5 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { UsersModule, CategoriesModule, ProductsModule } from '@App/modules';
+import { UsersModule, ProductsModule } from '@App/modules';
 import { BucketsModule, SubdomainMiddleware } from './shared';
 import { CompaniesModule } from './modules/companies';
 
@@ -8,7 +8,6 @@ import { CompaniesModule } from './modules/companies';
     BucketsModule,
     UsersModule,
     CompaniesModule,
-    CategoriesModule,
     ProductsModule,
   ],
   controllers: [],
