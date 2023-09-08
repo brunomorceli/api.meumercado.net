@@ -37,14 +37,14 @@ export class CompaniesService {
       throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
     }
 
-    const subdomain = await this.getSubdomain(label, prisma);
+    const tenantId = await this.getTenantId(label, prisma);
 
     const creatingData: any = {
       id: randomUUID(),
       ownerId: user.id,
       label,
       slug: Slug(label),
-      subdomain,
+      tenantId,
       categories: [{ label: 'Geral', value: randomUUID() }],
     };
 
@@ -122,36 +122,36 @@ export class CompaniesService {
       where.slug = { startsWith: Slug(findCompanyDto.label) };
     }
 
-    if (findCompanyDto.subdomain) {
-      where.subdomain = {
-        startsWith: findCompanyDto.subdomain,
+    if (findCompanyDto.tenantId) {
+      where.tenantId = {
+        startsWith: findCompanyDto.tenantId,
         mode: 'insensitive',
       };
     }
 
     if (findCompanyDto.address) {
-      where.subdomain = {
+      where.tenantId = {
         startsWith: findCompanyDto.address,
         mode: 'insensitive',
       };
     }
 
     if (findCompanyDto.neighborhood) {
-      where.subdomain = {
+      where.tenantId = {
         startsWith: findCompanyDto.neighborhood,
         mode: 'insensitive',
       };
     }
 
     if (findCompanyDto.city) {
-      where.subdomain = {
+      where.tenantId = {
         startsWith: findCompanyDto.city,
         mode: 'insensitive',
       };
     }
 
     if (findCompanyDto.state) {
-      where.subdomain = {
+      where.tenantId = {
         startsWith: findCompanyDto.state,
         mode: 'insensitive',
       };
@@ -207,7 +207,7 @@ export class CompaniesService {
     });
   }
 
-  async getSubdomain(label: string, prismaHandler?: any): Promise<string> {
+  async getTenantId(label: string, prismaHandler?: any): Promise<string> {
     const prisma = prismaHandler || this.prismaService;
     const slug = Slug(label);
 

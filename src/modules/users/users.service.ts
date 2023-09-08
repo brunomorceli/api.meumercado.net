@@ -40,76 +40,82 @@ export class UsersService {
   async authenticate(
     authenticateDto: AuthenticateUserDto,
   ): Promise<AuthenticateUserResponseDto> {
-    const company = await this.prismaService.$transaction(async (prisma) => {
-      const { email, label } = authenticateDto;
+    const [auth, company] = await this.prismaService.$transaction(
+      async (prisma) => {
+        const { email, label } = authenticateDto;
 
-      const upsertId = randomUUID();
-      const user = await this.prismaService.user.upsert({
-        where: { email },
-        create: {
-          id: upsertId,
-          ownerId: upsertId,
-          email,
-          status: UserStatusType.ACTIVE,
-        },
-        update: {},
-        include: { company: true },
-      });
+        const upsertId = randomUUID();
+        const user = await this.prismaService.user.upsert({
+          where: { email },
+          create: {
+            id: upsertId,
+            ownerId: upsertId,
+            email,
+            status: UserStatusType.ACTIVE,
+          },
+          update: {},
+          include: { company: true },
+        });
 
-      let company: any = user.company;
+        let company: any = user.company;
 
-      if (!company) {
-        if (!label) {
-          return null;
+        if (!company) {
+          if (!label) {
+            return [null, null];
+          }
+
+          company = await this.companiesService.create(
+            { email, label },
+            prisma,
+          );
         }
 
-        company = await this.companiesService.create({ email, label }, prisma);
-      }
+        const confirmationCode = await this.getUniqueConfirmationCode();
 
-      const confirmationCode = await this.getUniqueConfirmationCode();
+        await prisma.authentication.updateMany({
+          where: {
+            userId: user.id,
+            status: AuthenticationStatusType.PENDING,
+          },
+          data: {
+            status: AuthenticationStatusType.INACTIVE,
+            confirmationCode: '',
+          },
+        });
 
-      await prisma.authentication.updateMany({
-        where: {
-          userId: user.id,
-          status: AuthenticationStatusType.PENDING,
-        },
-        data: {
-          status: AuthenticationStatusType.INACTIVE,
-          confirmationCode: '',
-        },
-      });
+        const auth = await prisma.authentication.create({
+          data: {
+            userId: user.id,
+            confirmationCode,
+            confirmationExpiredAt: new Date(new Date().getTime() + 15 * 60000),
+          },
+        });
 
-      await prisma.authentication.create({
-        data: {
-          userId: user.id,
-          confirmationCode,
-          confirmationExpiredAt: new Date(new Date().getTime() + 15 * 60000),
-        },
-      });
+        await this.messageService.sendEmail({
+          email,
+          subject: 'Código de autenticação.',
+          metadata: { validationCode: confirmationCode },
+        });
 
-      await this.messageService.sendEmail({
-        email,
-        subject: 'Código de autenticação.',
-        metadata: { validationCode: confirmationCode },
-      });
-
-      return company;
-    });
+        return [auth, company];
+      },
+    );
 
     return Promise.resolve({
-      subdomain: company ? company.subdomain : null,
+      tenantId: company ? company.tenantId : null,
+      authId: auth ? auth.id : null,
     });
   }
 
   async confirmAuthentication(
-    subdomain: string,
+    tenantId: string,
     confirmAuthenticationDto: ConfirmAuthenticationDto,
   ): Promise<ConfirmAuthenticationResponseDto> {
     const now = new Date();
-    const { confirmationCode } = confirmAuthenticationDto;
+    const { confirmationCode, authId } = confirmAuthenticationDto;
 
     const company = await this.prismaService.company.findFirst({
-      where: { subdomain },
+      where: { tenantId },
     });
 
     if (!company) {
@@ -118,6 +124,7 @@ export class UsersService {
 
     const authentication = await this.prismaService.authentication.findFirst({
       where: {
+        id: authId,
         userId: company.ownerId,
         confirmationCode,
         status: AuthenticationStatusType.PENDING,

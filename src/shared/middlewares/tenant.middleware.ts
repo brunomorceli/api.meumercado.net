@@ -3,9 +3,9 @@ import { Request, Response, NextFunction } from 'express';
 import { GeneralUtils } from '../utils';
 
 @Injectable()
-export class SubdomainMiddleware implements NestMiddleware {
+export class TenantIdMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
-    res.locals.subdomain = GeneralUtils.getSubdomain(req.headers.origin || '');
+    res.locals.tenantId = GeneralUtils.getTenantId(req.headers.origin || '');
     next();
   }
 }

@@ -1,6 +1,6 @@
 import { ArrayDecorator, BooleanDecorator } from '@App/shared';
 
-export class CheckSubdomainResultDto {
+export class CheckTenantIdResultDto {
   @BooleanDecorator()
   available?: boolean;
 

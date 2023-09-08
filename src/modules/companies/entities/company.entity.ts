@@ -8,7 +8,7 @@ import {
   PhoneNumberDecorator,
   SlugDecorator,
   StringDecorator,
-  SubdomainDecorator,
+  TenantIdDecorator,
   UFDecorator,
   UuidDecorator,
 } from '@App/shared';
@@ -25,8 +25,8 @@ export class CompanyEntity {
   @SlugDecorator()
   slug: string;
 
-  @SubdomainDecorator()
-  subdomain: string;
+  @TenantIdDecorator()
+  tenantId: string;
 
   @StringDecorator()
   address: string;

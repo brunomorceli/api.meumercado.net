@@ -1,6 +1,7 @@
-import { SubdomainDecorator } from '@App/shared';
+import { TenantIdDecorator } from '@App/shared';
 
 export class AuthenticateUserResponseDto {
-  @SubdomainDecorator({ required: false })
-  subdomain?: string;
+  @TenantIdDecorator({ required: false })
+  tenantId?: string;
+  authId?: string;
 }

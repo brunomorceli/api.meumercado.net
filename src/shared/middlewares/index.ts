@@ -1,1 +1,1 @@
-export * from './subdomain.middleware';
+export * from './tenant.middleware';

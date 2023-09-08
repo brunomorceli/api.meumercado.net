@@ -4,14 +4,14 @@ import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
 import { Regex } from '../utils';
 import { DefaultPropertyDecoratorOptions } from './default-property-decorator-options';
 
-export const SubdomainDecorator = (data?: DefaultPropertyDecoratorOptions) => {
+export const TenantIdDecorator = (data?: DefaultPropertyDecoratorOptions) => {
   const decorators = [
     IsString(),
     Matches(Regex.SUBDOMAIN, {
       message: 'O subdomínio deve iniciar com letras.',
     }),
     ApiProperty({
-      description: 'Subdomain format',
+      description: 'TenantId format',
       type: String,
       pattern: RegExp(Regex.SUBDOMAIN).toString(),
       example: 'foo, foobar, foobar123, hello123world',

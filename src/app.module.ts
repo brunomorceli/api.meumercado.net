@@ -1,6 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { UsersModule, ProductsModule } from '@App/modules';
-import { BucketsModule, SubdomainMiddleware } from './shared';
+import { BucketsModule, TenantIdMiddleware } from './shared';
 import { CompaniesModule } from './modules/companies';
 
 @Module({
@@ -10,6 +10,6 @@ import { CompaniesModule } from './modules/companies';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(SubdomainMiddleware).forRoutes('*');
+    consumer.apply(TenantIdMiddleware).forRoutes('*');
   }
 }

@@ -23,14 +23,14 @@ export class UsersController {
     return this.usersService.authenticate(authenticateUserDto);
   }
 
-  @Post('confirm')
+  @Post('confirm/')
   @Public()
   confirm(
     @Res({ passthrough: true }) res,
     @Body() confirmAuthenticationDto: ConfirmAuthenticationDto,
   ): Promise<ConfirmAuthenticationResponseDto> {
     return this.usersService.confirmAuthentication(
-      res.locals.subdomain,
+      res.locals.tenantId,
       confirmAuthenticationDto,
     );
   }

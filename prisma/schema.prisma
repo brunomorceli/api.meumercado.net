@@ -49,7 +49,7 @@ model Company {
   id                String            @id @default(uuid()) @db.Uuid
   label             String
   slug              String
-  subdomain         String
+  tenantId         String @map("tenant_id")
   description       String?
   address           String?
   addressComplement String?           @map("address_complement")
@@ -69,7 +69,7 @@ model Company {
   deletedAt         DateTime?         @map("deleted_at")
 
   @@index([slug])
-  @@index([subdomain])
+  @@index([tenantId])
   @@map("companies")
 }
 
