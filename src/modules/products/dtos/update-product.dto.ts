@@ -24,8 +24,14 @@ export class UpdateProductDto {
   @NumberDecorator({ min: 1, required: false })
   quantity?: number;
 
+  @BooleanDecorator()
+  showPrice: boolean;
+
   @NumberDecorator({ min: 0, required: false })
   price?: number;
+
+  @NumberDecorator({ min: 0, required: false })
+  discountPrice?: number;
 
   @ImageDecorator({ required: false })
   cover?: string;

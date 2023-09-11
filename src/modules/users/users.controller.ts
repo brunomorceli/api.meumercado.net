@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Res } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import {
@@ -26,12 +26,9 @@ export class UsersController {
   @Post('confirm/')
   @Public()
   confirm(
-    @Res({ passthrough: true }) res,
+    //@Res({ passthrough: true }) res,
     @Body() confirmAuthenticationDto: ConfirmAuthenticationDto,
   ): Promise<ConfirmAuthenticationResponseDto> {
-    return this.usersService.confirmAuthentication(
-      res.locals.tenantId,
-      confirmAuthenticationDto,
-    );
+    return this.usersService.confirmAuthentication(confirmAuthenticationDto);
   }
 }

@@ -28,10 +28,13 @@ export class CreateProductDto {
   @NumberDecorator({ required: false })
   quantity?: number;
 
+  @BooleanDecorator()
+  showPrice: boolean;
+
   @NumberDecorator({ min: 0 })
   price: number;
 
-  @NumberDecorator({ required: false })
+  @NumberDecorator({ min: 0, required: false })
   discountPrice?: number;
 
   @StringDecorator({ required: false })

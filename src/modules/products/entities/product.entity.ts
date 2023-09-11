@@ -29,6 +29,9 @@ export class ProductEntity {
   @NumberDecorator({ min: 1 })
   quantity: number;
 
+  @BooleanDecorator()
+  showPrice: boolean;
+
   @NumberDecorator({ min: 0 })
   price: number;
 

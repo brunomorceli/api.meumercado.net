@@ -80,6 +80,7 @@ model Product {
   slug          String
   cover         String?
   quantity      Int?
+  showPrice     Boolean @default(true)
   price         Int
   discountPrice Int?              @map("discount_price")
   sku           String?

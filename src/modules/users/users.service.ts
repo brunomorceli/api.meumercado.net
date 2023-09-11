@@ -1,5 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AuthenticationStatusType, UserStatusType } from '@prisma/client';
+import {
+  AuthenticationStatusType,
+  CompanyStatusType,
+  UserStatusType,
+} from '@prisma/client';
 import { PrismaService, MessagesService } from '@App/shared/modules';
 import { GeneralUtils } from '@App/shared';
 import { AuthenticateUserDto } from './dtos/authenticate-user.dto';
@@ -108,24 +112,14 @@ export class UsersService {
   }
 
   async confirmAuthentication(
-    tenantId: string,
     confirmAuthenticationDto: ConfirmAuthenticationDto,
   ): Promise<ConfirmAuthenticationResponseDto> {
     const now = new Date();
     const { confirmationCode, authId } = confirmAuthenticationDto;
 
-    const company = await this.prismaService.company.findFirst({
-      where: { tenantId },
-    });
-
-    if (!company) {
-      throw new HttpException('Registro inválido.', HttpStatus.BAD_REQUEST);
-    }
-
     const authentication = await this.prismaService.authentication.findFirst({
       where: {
         id: authId,
-        userId: company.ownerId,
         confirmationCode,
         status: AuthenticationStatusType.PENDING,
         confirmationExpiredAt: { gt: now },
@@ -134,6 +128,17 @@ export class UsersService {
     });
 
     if (!authentication) {
+      throw new HttpException('Registro inválido.', HttpStatus.BAD_REQUEST);
+    }
+
+    const company = await this.prismaService.company.findFirst({
+      where: {
+        ownerId: authentication.user.id,
+        status: { not: CompanyStatusType.DELETED },
+      },
+    });
+
+    if (!company) {
       throw new HttpException('Registro inválido.', HttpStatus.BAD_REQUEST);
     }
 
