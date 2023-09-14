@@ -3,12 +3,13 @@ import {
   BooleanDecorator,
   DateDecorator,
   EnumDecorator,
-  ImageDecorator,
+  ImageArrayDecorator,
   NumberDecorator,
   StringDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { Product, ProductStatusType } from '@prisma/client';
+import { Product, ProductStatusType, ProductType } from '@prisma/client';
+import { ProductMeasureDto } from '../dtos';
 
 export class ProductEntity {
   @UuidDecorator()
@@ -44,6 +45,18 @@ export class ProductEntity {
   @StringDecorator({ required: false })
   barcode?: string;
 
+  @ArrayDecorator({ type: String })
+  videos: string[];
+
+  @ImageArrayDecorator()
+  pictures: string[];
+
+  @ArrayDecorator({ type: ProductMeasureDto })
+  measures: ProductMeasureDto[];
+
+  @EnumDecorator({ enumType: ProductType })
+  type: ProductType;
+
   @UuidDecorator()
   companyId: string;
 
@@ -55,9 +68,6 @@ export class ProductEntity {
     default: ProductStatusType.ACTIVE,
   })
   status: ProductStatusType;
-
-  @ImageDecorator({ required: false })
-  cover?: string;
 
   @DateDecorator({ description: 'Creating date.' })
   createdAt: string;

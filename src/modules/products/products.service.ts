@@ -26,22 +26,18 @@ export class ProductsService {
     createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
     const ownerId = user.ownerId;
-    const {
-      label,
-      price,
-      quantity,
-      unlimited,
-      description,
-      cover,
-      categories,
-      status,
-    } = createProductDto;
-    const slug = Slug(label);
+    const data: any = {
+      ...createProductDto,
+      ownerId,
+      id: randomUUID(),
+      status: createProductDto.status || ProductStatusType.ACTIVE,
+      slug: Slug(createProductDto.label),
+    };
 
     let product = await this.prismaService.product.findFirst({
       where: {
         ownerId,
-        slug,
+        slug: data.slug,
         status: { not: ProductStatusType.DELETED },
       },
     });
@@ -50,22 +46,15 @@ export class ProductsService {
       throw new BadRequestException('Já existe um produto com este nome.');
     }
 
-    const data: any = {
-      id: randomUUID(),
-      label,
-      description,
-      slug,
-      status: status || ProductStatusType.ACTIVE,
-      ownerId,
-      price,
-      quantity,
-      unlimited,
-      categories,
-    };
-
-    if (cover) {
-      await this.bucketsService.uploadImage(this.bucketName, data.id, cover);
-      data.cover = this.bucketsService.getImageUrl(this.bucketName, data.id);
+    for (let i = 0; i < data.pictures.length; i++) {
+      await this.bucketsService.uploadImage(
+        this.bucketName,
+        data.id,
+        data.pictures[i],
+      );
+      data.pictures.push(
+        this.bucketsService.getImageUrl(this.bucketName, data.id),
+      );
     }
 
     product = await this.prismaService.product.create({ data });
@@ -78,7 +67,7 @@ export class ProductsService {
     updateProductDto: UpdateProductDto,
   ): Promise<ProductEntity> {
     const ownerId = user.ownerId;
-    const { id, cover, ...updateData } = updateProductDto;
+    const { id, ...updateData } = updateProductDto;
 
     let product = await this.prismaService.product.findFirst({
       where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
@@ -88,10 +77,23 @@ export class ProductsService {
       throw new BadRequestException('Produto não encontrado.');
     }
 
-    let newCover: any = null;
-    if (cover && cover.indexOf('data:image') === 0) {
-      await this.bucketsService.uploadImage(this.bucketName, product.id, cover);
-      newCover = this.bucketsService.getImageUrl(this.bucketName, product.id);
+    if (updateData.pictures) {
+      for (let i = 0; i < updateData.pictures.length; i++) {
+        if (updateData.pictures[i].indexOf('data:image') !== 0) {
+          continue;
+        }
+
+        await this.bucketsService.uploadImage(
+          this.bucketName,
+          product.id,
+          updateData.pictures[i],
+        );
+
+        updateData.pictures[i] = this.bucketsService.getImageUrl(
+          this.bucketName,
+          product.id,
+        );
+      }
     }
 
     const slug = Slug(updateProductDto.label || product.label);
@@ -112,7 +114,11 @@ export class ProductsService {
 
     product = await this.prismaService.product.update({
       where: { id },
-      data: { ...updateData, slug, cover: newCover || product.cover },
+      data: {
+        ...updateData,
+        measures: updateData.measures as any,
+        slug,
+      },
     });
 
     return new ProductEntity(product);
@@ -137,7 +143,7 @@ export class ProductsService {
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
     const ownerId = user.ownerId;
-    const { label, status, categoryId } = findProductDto;
+    const { label, status, categoryId, companyId } = findProductDto;
     const where: any = {
       ownerId,
       status: { not: ProductStatusType.DELETED },
@@ -154,6 +160,10 @@ export class ProductsService {
 
     if (categoryId) {
       where.categories = { has: categoryId };
+    }
+
+    if (companyId) {
+      where.companyId = companyId;
     }
 
     let products = [];

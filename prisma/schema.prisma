@@ -49,7 +49,7 @@ model Company {
   id                String            @id @default(uuid()) @db.Uuid
   label             String
   slug              String
-  tenantId         String @map("tenant_id")
+  tenantId          String            @map("tenant_id")
   description       String?
   address           String?
   addressComplement String?           @map("address_complement")
@@ -78,15 +78,19 @@ model Product {
   label         String
   description   String?
   slug          String
-  cover         String?
+  unlimited     Boolean           @default(false)
   quantity      Int?
-  showPrice     Boolean @default(true)
+  showPrice     Boolean           @default(true) @map("show_price")
   price         Int
   discountPrice Int?              @map("discount_price")
   sku           String?
   barcode       String?
   status        ProductStatusType @default(ACTIVE)
   categories    String[]          @default([]) @db.Uuid
+  measures      Json
+  pictures      String[]
+  videos        String[]
+  type          ProductType       @default(PHYSIC)
   ownerId       String            @map("owner_id") @db.Uuid
   owner         User              @relation(fields: [ownerId], references: [id])
   createdAt     DateTime          @default(now()) @map("created_at")
@@ -133,4 +137,9 @@ enum ProductDiscountType {
   ACTIVE
   INACTIVE
   DELETED
+}
+
+enum ProductType {
+  PHYSIC
+  DIGITAL
 }

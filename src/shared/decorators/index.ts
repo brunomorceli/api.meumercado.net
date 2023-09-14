@@ -28,3 +28,4 @@ export * from './uf.decorator';
 export * from './tenant-id.decorator';
 export * from './slug.decorator';
 export * from './image.decorator';
+export * from './image-array.decorator';

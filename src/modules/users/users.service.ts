@@ -144,6 +144,7 @@ export class UsersService {
 
     const jwt = GeneralUtils.generateJwt({
       userId: authentication.user.id,
+      companyId: company.id,
     });
 
     await this.prismaService.authentication.update({
