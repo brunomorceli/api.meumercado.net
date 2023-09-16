@@ -1,8 +1,4 @@
-import {
-  NumberDecorator,
-  StringDecorator,
-  UuidDecorator,
-} from '@App/shared';
+import { NumberDecorator, StringDecorator, UuidDecorator } from '@App/shared';
 
 export class AttributeDto {
   @UuidDecorator()
