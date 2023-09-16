@@ -88,6 +88,7 @@ model Product {
   status        ProductStatusType @default(ACTIVE)
   categories    String[]          @default([]) @db.Uuid
   measures      Json
+  attributes Json
   pictures      String[]
   videos        String[]
   type          ProductType       @default(PHYSIC)

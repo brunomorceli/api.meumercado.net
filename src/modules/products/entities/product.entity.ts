@@ -9,7 +9,7 @@ import {
   UuidDecorator,
 } from '@App/shared';
 import { Product, ProductStatusType, ProductType } from '@prisma/client';
-import { ProductMeasureDto } from '../dtos';
+import { AttributeDto, ProductMeasureDto } from '../dtos';
 
 export class ProductEntity {
   @UuidDecorator()
@@ -53,6 +53,9 @@ export class ProductEntity {
 
   @ArrayDecorator({ type: ProductMeasureDto })
   measures: ProductMeasureDto[];
+
+  @ArrayDecorator({ type: AttributeDto })
+  attributes: AttributeDto[];
 
   @EnumDecorator({ enumType: ProductType })
   type: ProductType;

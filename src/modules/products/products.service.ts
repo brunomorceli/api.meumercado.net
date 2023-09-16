@@ -46,16 +46,21 @@ export class ProductsService {
       throw new BadRequestException('Já existe um produto com este nome.');
     }
 
+    const pictures = [];
     for (let i = 0; i < data.pictures.length; i++) {
+      const imageName = `${data.id}_${randomUUID()}`;
+
       await this.bucketsService.uploadImage(
         this.bucketName,
-        data.id,
+        imageName,
         data.pictures[i],
       );
-      data.pictures.push(
-        this.bucketsService.getImageUrl(this.bucketName, data.id),
+      pictures.push(
+        this.bucketsService.getImageUrl(this.bucketName, imageName),
       );
     }
+
+    data.pictures = pictures;
 
     product = await this.prismaService.product.create({ data });
 
@@ -83,15 +88,16 @@ export class ProductsService {
           continue;
         }
 
+        const imageName = `${product.id}_${randomUUID()}`;
         await this.bucketsService.uploadImage(
           this.bucketName,
-          product.id,
+          imageName,
           updateData.pictures[i],
         );
 
         updateData.pictures[i] = this.bucketsService.getImageUrl(
           this.bucketName,
-          product.id,
+          imageName,
         );
       }
     }
@@ -117,6 +123,7 @@ export class ProductsService {
       data: {
         ...updateData,
         measures: updateData.measures as any,
+        attributes: updateData.attributes as any,
         slug,
       },
     });

@@ -1,4 +1,4 @@
-import { ProductMeasureDto } from '@App/modules';
+import { AttributeDto, ProductMeasureDto } from '@App/modules';
 import {
   ArrayDecorator,
   BooleanDecorator,
@@ -48,6 +48,9 @@ export class CreateProductDto {
 
   @ArrayDecorator({ type: ProductMeasureDto })
   measures: ProductMeasureDto[];
+
+  @ArrayDecorator({ type: AttributeDto })
+  attributes: AttributeDto[];
 
   @EnumDecorator({ enumType: ProductType })
   type: ProductType;
