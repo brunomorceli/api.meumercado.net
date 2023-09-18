@@ -2,13 +2,13 @@ import {
   ArrayDecorator,
   CepDecorator,
   DateDecorator,
+  EmailDecorator,
   EnumDecorator,
   ImageDecorator,
   NumberDecorator,
   PhoneNumberDecorator,
   SlugDecorator,
   StringDecorator,
-  TenantIdDecorator,
   UFDecorator,
   UuidDecorator,
 } from '@App/shared';
@@ -24,9 +24,6 @@ export class CompanyEntity {
 
   @SlugDecorator()
   slug: string;
-
-  @TenantIdDecorator()
-  tenantId: string;
 
   @StringDecorator()
   address: string;
@@ -54,6 +51,12 @@ export class CompanyEntity {
 
   @PhoneNumberDecorator({ onlyNumbers: true, empty: true })
   phoneNumber: string;
+
+  @EmailDecorator({ required: false })
+  email?: string;
+
+  @StringDecorator({ required: false })
+  manager?: string;
 
   @ImageDecorator({ required: false })
   logo?: string;

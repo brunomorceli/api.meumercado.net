@@ -82,7 +82,7 @@ export class CompaniesService {
         updateData.id,
         logo,
       );
-      updateCompanyDto.logo = this.bucketService.getImageUrl(
+      updateData.logo = this.bucketService.getImageUrl(
         this.bucketName,
         updateData.id,
       );

@@ -60,6 +60,8 @@ model Company {
   cep               String?
   logo              String?
   phoneNumber       String?           @map("phone_number")
+  email             String?
+  manager           String?
   categories        Json
   status            CompanyStatusType @default(ACTIVE)
   ownerId           String            @unique @map("owner_id") @db.Uuid

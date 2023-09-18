@@ -1,6 +1,7 @@
 import {
   ArrayDecorator,
   CepDecorator,
+  EmailDecorator,
   EnumDecorator,
   ImageDecorator,
   NumberDecorator,
@@ -45,7 +46,13 @@ export class UpdateCompanyDto {
   @StringDecorator({ required: false })
   phoneNumber?: string;
 
-  @ImageDecorator({ description: 'Image', required: false })
+  @EmailDecorator({ required: false })
+  email?: string;
+
+  @StringDecorator({ required: false })
+  manager?: string;
+
+  @ImageDecorator({ description: 'Image', required: false, empty: true })
   logo?: string;
 
   @ArrayDecorator({ type: CategoryDto, required: false })
