@@ -4,7 +4,6 @@ import {
   EmailDecorator,
   EnumDecorator,
   ImageDecorator,
-  NumberDecorator,
   StringDecorator,
   UFDecorator,
   UuidDecorator,
@@ -25,7 +24,7 @@ export class UpdateCompanyDto {
   @StringDecorator({ required: false })
   address?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   addressComplement?: string;
 
   @StringDecorator({ required: false })
@@ -37,7 +36,7 @@ export class UpdateCompanyDto {
   @UFDecorator({ required: false })
   state?: string;
 
-  @NumberDecorator({ min: 0, required: false })
+  @StringDecorator({ required: false, empty: true })
   addressNumber?: string;
 
   @CepDecorator({ required: false })

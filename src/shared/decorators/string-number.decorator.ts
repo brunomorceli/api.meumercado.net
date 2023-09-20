@@ -1,6 +1,11 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsNumberString } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsNumberString,
+  ValidateIf,
+} from 'class-validator';
 import { DefaultPropertyDecoratorOptions } from './default-property-decorator-options';
 
 export const StringNumberDecorator = (
@@ -19,6 +24,8 @@ export const StringNumberDecorator = (
 
   if (data && data.empty !== true) {
     decorators.push(IsNotEmpty());
+  } else {
+    decorators.push(ValidateIf((e) => e !== ''));
   }
 
   if (data && data.required === false) {

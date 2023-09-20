@@ -15,6 +15,7 @@ import {
   SigninDto,
   SigninResponseDto,
 } from './dtos';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -58,8 +59,9 @@ export class UsersService {
     }
 
     await this.prismaService.$transaction(async (prisma) => {
+      const userId = randomUUID();
       const user = await prisma.user.create({
-        data: { email, firstName, lastName },
+        data: { id: userId, ownerId: userId, email, firstName, lastName },
       });
 
       const company = await this.companiesService.create(

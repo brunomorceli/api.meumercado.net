@@ -30,7 +30,7 @@ export class CompaniesController {
 
   @Public()
   @Get(':id/get')
-  get(props: IdParamDto): Promise<CompanyEntity> {
+  get(@Param() props: IdParamDto): Promise<CompanyEntity> {
     return this.companiesService.get(props.id);
   }
 

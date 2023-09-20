@@ -60,7 +60,7 @@ model Company {
   address           String?
   addressComplement String? @map("address_complement")
   neighborhood      String?
-  addressNumber     Int?    @map("address_number")
+  addressNumber     String?    @map("address_number")
   city              String?
   state             String?
   cep               String?
@@ -151,7 +151,7 @@ model DeliveryData {
   address           String?
   addressComplement String? @map("address_complement")
   neighborhood      String?
-  addressNumber     Int?    @map("address_number")
+  addressNumber     String?    @map("address_number")
   city              String?
   state             String?
   cep               String?
@@ -178,7 +178,7 @@ model BillingData {
   address           String?
   addressComplement String? @map("address_complement")
   neighborhood      String?
-  addressNumber     Int?    @map("address_number")
+  addressNumber     String?    @map("address_number")
   city              String?
   state             String?
   cep               String?
