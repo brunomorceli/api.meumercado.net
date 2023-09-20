@@ -8,21 +8,25 @@ datasource db {
 }
 
 model User {
-  id        String         @id @default(uuid()) @db.Uuid
-  email     String         @unique
-  name      String?
-  type      UserType       @default(ADMIN)
-  status    UserStatusType @default(ACTIVE)
-  createdAt DateTime       @default(now()) @map("created_at")
-  updatedAt DateTime?      @updatedAt @map("updated_at")
-  userId    String?        @map("user_id")
-  ownerId   String?        @map("owner_id") @db.Uuid
-  owner     User?          @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id          String         @id @default(uuid()) @db.Uuid
+  email       String         @unique
+  firstName   String?        @map("first_name")
+  lastName    String?        @map("last_name")
+  phoneNumber String?        @map("phone_number")
+  cpfCnpj     String?        @map("cpf_cnpj")
+  type        UserType       @default(ADMIN)
+  status      UserStatusType @default(ACTIVE)
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime?      @updatedAt @map("updated_at")
+  userId      String?        @map("user_id")
+  ownerId     String?        @map("owner_id") @db.Uuid
+  owner       User?          @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   authentications Authentication[]
   company         Company?
   products        Product[]
   owners          User[]           @relation("owner")
+  CompanyUser     CompanyUser[]
 
   @@index([email])
   @@map("users")
@@ -46,29 +50,34 @@ model Authentication {
 }
 
 model Company {
-  id                String            @id @default(uuid()) @db.Uuid
-  label             String
-  slug              String
-  tenantId          String            @map("tenant_id")
-  description       String?
+  id          String  @id @default(uuid()) @db.Uuid
+  label       String
+  slug        String
+  tenantId    String  @map("tenant_id")
+  description String?
+  logo        String?
+
   address           String?
-  addressComplement String?           @map("address_complement")
+  addressComplement String? @map("address_complement")
   neighborhood      String?
-  addressNumber     Int?              @map("address_number")
+  addressNumber     Int?    @map("address_number")
   city              String?
   state             String?
   cep               String?
-  logo              String?
-  phoneNumber       String?           @map("phone_number")
-  email             String?
-  manager           String?
-  categories        Json
-  status            CompanyStatusType @default(ACTIVE)
-  ownerId           String            @unique @map("owner_id") @db.Uuid
-  owner             User              @relation(fields: [ownerId], references: [id])
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
-  deletedAt         DateTime?         @map("deleted_at")
+
+  phoneNumber String?           @map("phone_number")
+  email       String?
+  manager     String?
+  categories  Json
+  roles       Json
+  status      CompanyStatusType @default(ACTIVE)
+  ownerId     String            @unique @map("owner_id") @db.Uuid
+  owner       User              @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+  deletedAt   DateTime?         @map("deleted_at")
+
+  companyUsers CompanyUser[]
 
   @@index([slug])
   @@index([tenantId])
@@ -90,7 +99,7 @@ model Product {
   status        ProductStatusType @default(ACTIVE)
   categories    String[]          @default([]) @db.Uuid
   measures      Json
-  attributes Json
+  attributes    Json
   pictures      String[]
   videos        String[]
   type          ProductType       @default(PHYSIC)
@@ -105,6 +114,83 @@ model Product {
   @@index([barcode])
   @@index([categories])
   @@map("products")
+}
+
+model CompanyUser {
+  id        String                @id @default(uuid()) @db.Uuid
+  type      CompanyUserType       @default(CLIENT)
+  status    CompanyUserStatusType @default(ACTIVE)
+  userId    String                @map("user_id") @db.Uuid
+  user      User                  @relation(fields: [userId], references: [id])
+  roles     String[]              @db.Uuid
+  companyId String                @map("company_id") @db.Uuid
+  company   Company               @relation(fields: [companyId], references: [id])
+
+  deliveryDataId String?       @map("delivery_data_id") @db.Uuid
+  deliveryData   DeliveryData? @relation(fields: [deliveryDataId], references: [id])
+
+  billingDataId String?      @map("billing_data_id") @db.Uuid
+  billingData   BillingData? @relation(fields: [billingDataId], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("company_users")
+}
+
+model DeliveryData {
+  id String @id @default(uuid()) @db.Uuid
+
+  firstName   String  @map("first_name")
+  lastName    String  @map("last_name")
+  phoneNumber String? @map("phone_number")
+  email       String?
+  cpfCnpj     String? @map("cpf_cnpj")
+
+  address           String?
+  addressComplement String? @map("address_complement")
+  neighborhood      String?
+  addressNumber     Int?    @map("address_number")
+  city              String?
+  state             String?
+  cep               String?
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+  CompanyUser CompanyUser[]
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@map("delivery_datas")
+}
+
+model BillingData {
+  id String @id @default(uuid()) @db.Uuid
+
+  firstName   String  @map("first_name")
+  lastName    String  @map("last_name")
+  phoneNumber String? @map("phone_number")
+  email       String?
+  cpfCnpj     String? @map("cpf_cnpj")
+
+  address           String?
+  addressComplement String? @map("address_complement")
+  neighborhood      String?
+  addressNumber     Int?    @map("address_number")
+  city              String?
+  state             String?
+  cep               String?
+
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  deletedAt   DateTime?     @map("deleted_at")
+  CompanyUser CompanyUser[]
+
+  @@index([email])
+  @@index([phoneNumber])
+  @@map("billing_datas")
 }
 
 enum UserStatusType {
@@ -134,6 +220,18 @@ enum CompanyStatusType {
   ACTIVE
   INACTIVE
   DELETED
+}
+
+enum CompanyUserStatusType {
+  ACTIVE
+  INACTIVE
+  DELETED
+}
+
+enum CompanyUserType {
+  OWNER
+  EMPLOYEE
+  CLIENT
 }
 
 enum ProductDiscountType {

@@ -46,6 +46,44 @@ export class CompaniesService {
       slug: Slug(label),
       tenantId,
       categories: [{ label: 'Geral', value: randomUUID() }],
+      roles: [
+        {
+          id: randomUUID(),
+          label: 'Proprietário',
+          permissions: {
+            roles: ['edit', 'view', 'delete'],
+            companies: ['edit', 'view', 'delete'],
+            orders: ['edit', 'view', 'delete'],
+            products: ['edit', 'view', 'delete'],
+            employees: ['edit', 'view', 'delete'],
+            clients: ['edit', 'view', 'delete'],
+          },
+        },
+        {
+          id: randomUUID(),
+          label: 'Admin',
+          permissions: {
+            roles: ['edit', 'view'],
+            companies: ['edit', 'view'],
+            orders: ['edit', 'view', 'delete'],
+            products: ['edit', 'view', 'delete'],
+            employees: ['edit', 'view', 'delete'],
+            clients: ['edit', 'view', 'delete'],
+          },
+        },
+        {
+          id: randomUUID(),
+          label: 'Entregador',
+          permissions: {
+            roles: [],
+            companies: ['view'],
+            orders: ['view'],
+            products: ['view'],
+            employees: [],
+            clients: ['view'],
+          },
+        },
+      ],
     };
 
     const company = await prisma.company.create({

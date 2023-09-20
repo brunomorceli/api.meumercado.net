@@ -7,6 +7,7 @@ import {
   ImageDecorator,
   NumberDecorator,
   PhoneNumberDecorator,
+  RoleDto,
   SlugDecorator,
   StringDecorator,
   UFDecorator,
@@ -66,6 +67,9 @@ export class CompanyEntity {
 
   @EnumDecorator({ enumType: CompanyStatusType })
   status: CompanyStatusType;
+
+  @ArrayDecorator({ type: RoleDto })
+  roles: RoleDto[];
 
   @DateDecorator({ description: 'Creating date.' })
   createdAt: string;

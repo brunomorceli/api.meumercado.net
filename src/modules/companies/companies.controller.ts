@@ -1,6 +1,5 @@
 import {
   Controller,
-  Post,
   Body,
   Get,
   Req,
@@ -11,12 +10,7 @@ import {
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import {
-  CreateCompanyDto,
-  FindCompanyDto,
-  FindCompanyResultDto,
-  UpdateCompanyDto,
-} from './dtos';
+import { FindCompanyDto, FindCompanyResultDto, UpdateCompanyDto } from './dtos';
 import { CompanyEntity } from './entities/company.entity';
 import { IdParamDto, Public } from '@App/shared';
 
@@ -25,14 +19,6 @@ import { IdParamDto, Public } from '@App/shared';
 @Controller('companies')
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
-
-  @Post()
-  create(
-    @Req() req: any,
-    @Body() createCompanyDto: CreateCompanyDto,
-  ): Promise<CompanyEntity> {
-    return this.companiesService.create(req.user, createCompanyDto);
-  }
 
   @Patch()
   update(

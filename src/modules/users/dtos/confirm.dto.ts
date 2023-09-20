@@ -2,7 +2,7 @@ import { UuidDecorator } from '@App/shared';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, Length } from 'class-validator';
 
-export class ConfirmAuthenticationDto {
+export class ConfirmDto {
   @ApiProperty({
     example: '123ab',
     required: true,

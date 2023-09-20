@@ -2,18 +2,19 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   AuthenticationStatusType,
   CompanyStatusType,
-  UserStatusType,
+  CompanyUserStatusType,
+  CompanyUserType,
 } from '@prisma/client';
 import { PrismaService, MessagesService } from '@App/shared/modules';
 import { GeneralUtils } from '@App/shared';
-import { AuthenticateUserDto } from './dtos/authenticate-user.dto';
-import { ConfirmAuthenticationDto } from './dtos/confirm-authentication.dto';
+import { SignupDto } from './dtos/signup.dto';
+import { CompaniesService } from '../companies';
 import {
-  AuthenticateUserResponseDto,
-  ConfirmAuthenticationResponseDto,
+  ConfirmDto,
+  ConfirmResponseDto,
+  SigninDto,
+  SigninResponseDto,
 } from './dtos';
-import { CompaniesService, CompanyEntity } from '../companies';
-import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -41,81 +42,95 @@ export class UsersService {
     );
   }
 
-  async authenticate(
-    authenticateDto: AuthenticateUserDto,
-  ): Promise<AuthenticateUserResponseDto> {
-    const [auth, company] = await this.prismaService.$transaction(
-      async (prisma) => {
-        const { email, label } = authenticateDto;
+  async signup(signupDto: SignupDto): Promise<void> {
+    const { email, label, firstName, lastName } = signupDto;
 
-        const upsertId = randomUUID();
-        const user = await this.prismaService.user.upsert({
-          where: { email },
-          create: {
-            id: upsertId,
-            ownerId: upsertId,
-            email,
-            status: UserStatusType.ACTIVE,
-          },
-          update: {},
-          include: { company: true },
-        });
+    const user = await this.prismaService.user.findUnique({
+      where: { email },
+      include: { company: true },
+    });
 
-        let company: any = user.company;
+    if (user) {
+      throw new HttpException(
+        'Email já se encontra em uso.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
-        if (!company) {
-          if (!label) {
-            return [null, null];
-          }
+    await this.prismaService.$transaction(async (prisma) => {
+      const user = await prisma.user.create({
+        data: { email, firstName, lastName },
+      });
 
-          company = await this.companiesService.create(
-            { email, label },
-            prisma,
-          );
-        }
+      const company = await this.companiesService.create(
+        { email, label },
+        prisma,
+      );
 
-        const confirmationCode = await this.getUniqueConfirmationCode();
-
-        await prisma.authentication.updateMany({
-          where: {
-            userId: user.id,
-            status: AuthenticationStatusType.PENDING,
-          },
-          data: {
-            status: AuthenticationStatusType.INACTIVE,
-            confirmationCode: '',
-          },
-        });
-
-        const auth = await prisma.authentication.create({
-          data: {
-            userId: user.id,
-            confirmationCode,
-            confirmationExpiredAt: new Date(new Date().getTime() + 15 * 60000),
-          },
-        });
-
-        await this.messageService.sendEmail({
-          email,
-          subject: 'Código de autenticação.',
-          metadata: { validationCode: confirmationCode },
-        });
-
-        return [auth, company];
-      },
-    );
-
-    return Promise.resolve({
-      tenantId: company ? company.tenantId : null,
-      authId: auth ? auth.id : null,
+      await prisma.companyUser.create({
+        data: {
+          type: CompanyUserType.OWNER,
+          status: CompanyUserStatusType.ACTIVE,
+          userId: user.id,
+          companyId: company.id,
+          roles: company.roles.map((r) => r.id),
+        },
+      });
     });
   }
 
-  async confirmAuthentication(
-    confirmAuthenticationDto: ConfirmAuthenticationDto,
-  ): Promise<ConfirmAuthenticationResponseDto> {
+  async signin(signinDto: SigninDto): Promise<SigninResponseDto> {
+    const { email } = signinDto;
+
+    const user = await this.prismaService.user.findUnique({
+      where: { email },
+      include: { company: true },
+    });
+
+    if (!user || !user.company) {
+      throw new HttpException(null, HttpStatus.NO_CONTENT);
+    }
+
+    const auth = await this.prismaService.$transaction(async (prisma) => {
+      const confirmationCode = await this.getUniqueConfirmationCode();
+
+      await prisma.authentication.updateMany({
+        where: {
+          userId: user.id,
+          status: AuthenticationStatusType.PENDING,
+        },
+        data: {
+          status: AuthenticationStatusType.INACTIVE,
+          confirmationCode: '',
+        },
+      });
+
+      const auth = await prisma.authentication.create({
+        data: {
+          userId: user.id,
+          confirmationCode,
+          confirmationExpiredAt: new Date(new Date().getTime() + 15 * 60000),
+        },
+      });
+
+      await this.messageService.sendEmail({
+        email,
+        subject: 'Código de autenticação.',
+        metadata: { validationCode: confirmationCode },
+      });
+
+      return auth;
+    });
+
+    return Promise.resolve({
+      tenantId: user.company.id,
+      authId: auth.id,
+    });
+  }
+
+  async confirm(confirmDto: ConfirmDto): Promise<ConfirmResponseDto> {
     const now = new Date();
-    const { confirmationCode, authId } = confirmAuthenticationDto;
+    const { confirmationCode, authId } = confirmDto;
 
     const authentication = await this.prismaService.authentication.findFirst({
       where: {
@@ -131,10 +146,19 @@ export class UsersService {
       throw new HttpException('Registro inválido.', HttpStatus.BAD_REQUEST);
     }
 
+    const user = authentication.user;
+
     const company = await this.prismaService.company.findFirst({
       where: {
         ownerId: authentication.user.id,
         status: { not: CompanyStatusType.DELETED },
+      },
+    });
+
+    const companyUser = await this.prismaService.companyUser.findFirst({
+      where: {
+        companyId: company.id,
+        userId: user.id,
       },
     });
 
@@ -157,10 +181,19 @@ export class UsersService {
     });
 
     return {
-      userName: authentication.user.name,
       token: jwt.token,
       type: authentication.user.type,
-      company: new CompanyEntity(company),
+      user: {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        roles: (company.roles as any[]).filter((r) =>
+          companyUser.roles.includes(r.id),
+        ),
+      },
+      company: {
+        id: company.id,
+        tenantId: company.tenantId,
+      },
     };
   }
 }
