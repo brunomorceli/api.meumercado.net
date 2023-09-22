@@ -1,39 +1,26 @@
 import {
-  ArrayDecorator,
   CepDecorator,
   CpfCnpjDecorator,
   EmailDecorator,
   EnumDecorator,
-  ImageDecorator,
   PhoneNumberDecorator,
   StringDecorator,
   UFDecorator,
-  UuidDecorator,
 } from '@App/shared';
-import { CompanyStatusType } from '@prisma/client';
-import { CategoryDto } from './category.dto';
+import { RoleType } from '@prisma/client';
 
-export class UpdateCompanyDto {
-  @UuidDecorator()
-  id: string;
+export class CreateCompanyUserDto {
+  @StringDecorator()
+  firstName: string;
 
-  @StringDecorator({ required: false })
-  name?: string;
+  @StringDecorator()
+  lastName: string;
 
-  @EmailDecorator({ required: false })
-  email?: string;
+  @EnumDecorator({ enumType: RoleType })
+  role: RoleType;
 
-  @StringDecorator({ required: false })
-  description?: string;
-
-  @ImageDecorator({ description: 'Image', required: false, empty: true })
-  logo?: string;
-
-  @ArrayDecorator({ type: CategoryDto, required: false })
-  categories?: CategoryDto[];
-
-  @EnumDecorator({ enumType: CompanyStatusType, required: false })
-  status?: CompanyStatusType;
+  @EmailDecorator()
+  email: string;
 
   @CpfCnpjDecorator({ required: false })
   cpfCnpj?: string;
@@ -61,7 +48,4 @@ export class UpdateCompanyDto {
 
   @CepDecorator({ required: false })
   cep?: string;
-
-  @StringDecorator({ required: false })
-  responsible?: string;
 }

@@ -8,13 +8,17 @@ import { CompanyStatusType, RoleType, UserStatusType } from '@prisma/client';
 import { PrismaService, PaginationDto, BucketsService } from '@App/shared';
 import {
   CreateCompanyDto,
+  CreateCompanyUserDto,
   FindCompanyDto,
   FindCompanyResultDto,
+  FindCompanyUserDto,
   UpdateCompanyDto,
+  UpdateCompanyUserDto,
 } from './dtos';
-import { CompanyEntity } from './entities';
+import { CompanyEntity, CompanyUserEntity } from './entities';
 import { randomUUID } from 'crypto';
 import * as Slug from 'slug';
+import { FindCompanyUserResultDto } from './dtos/company-users/find-company-user-result.dto';
 
 @Injectable()
 export class CompaniesService {
@@ -194,5 +198,142 @@ export class CompaniesService {
 
     const last: number = Number(raw[0].slug.replace(slug, ''));
     return `${slug}${last + 1}`;
+  }
+
+  async getUser(companyId: string, userId: string): Promise<CompanyUserEntity> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId, companyId },
+    });
+    if (!user) {
+      throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
+    }
+
+    return new CompanyUserEntity(user);
+  }
+
+  async findUser(
+    companyId: string,
+    findCompanyUserDto: FindCompanyUserDto,
+  ): Promise<FindCompanyUserResultDto> {
+    const { name, ...rest } = findCompanyUserDto;
+    const where: any = { ...rest, companyId };
+
+    if (name) {
+      where.slug = { startsWith: Slug(name) };
+    }
+
+    const paginationData = FindCompanyUserDto.getPaginationParams(
+      findCompanyUserDto as PaginationDto,
+    );
+
+    const total = await this.prismaService.user.count({ where });
+
+    const users = await this.prismaService.user.findMany({
+      where,
+      skip: paginationData.skip,
+      take: paginationData.limit,
+    });
+
+    return {
+      page: paginationData.page,
+      limit: paginationData.limit,
+      total,
+      data: users.map((c: any) => new CompanyUserEntity(c)) || [],
+    };
+  }
+
+  async createUser(
+    companyId: string,
+    createCompanyUserDto: CreateCompanyUserDto,
+  ): Promise<CompanyUserEntity> {
+    const company = await this.prismaService.company.findFirst({
+      where: { id: companyId },
+    });
+
+    if (!company) {
+      throw new HttpException('Empresa inválida', HttpStatus.BAD_REQUEST);
+    }
+
+    const existing = this.prismaService.user.findUnique({
+      where: { email: createCompanyUserDto.email },
+    });
+
+    if (!!existing) {
+      throw new HttpException(
+        'O email já se encontra em uso.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const newUser = await this.prismaService.user.create({
+      data: createCompanyUserDto as any,
+    });
+
+    return new CompanyUserEntity(newUser);
+  }
+
+  async updateUser(
+    companyId: string,
+    updateCompanyUserDto: UpdateCompanyUserDto,
+  ): Promise<CompanyUserEntity> {
+    const { id, email } = updateCompanyUserDto;
+    const updateData: any = { ...updateCompanyUserDto };
+
+    let user = await this.prismaService.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.companyId !== companyId) {
+      throw new HttpException(
+        'O usuário não pertence a empresa informada.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    if (email) {
+      const existingEmail = this.prismaService.user.count({
+        where: { id: { not: id }, email },
+      });
+
+      if (!!existingEmail) {
+        throw new HttpException(
+          'O email já se encontra em uso.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      updateData.email = email;
+    }
+
+    user = await this.prismaService.user.update({
+      where: { id },
+      data: updateData,
+    });
+
+    return new CompanyUserEntity(user);
+  }
+
+  async deleteUser(companyId: string, userId: string): Promise<void> {
+    const user = await this.prismaService.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
+    }
+
+    if (user.companyId !== companyId) {
+      throw new HttpException(
+        'O usuário não pertence a empresa informada.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    await this.prismaService.user.update({
+      where: { id: userId },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
   }
 }

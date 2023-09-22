@@ -1,39 +1,42 @@
 import {
-  ArrayDecorator,
   CepDecorator,
   CpfCnpjDecorator,
+  DateDecorator,
   EmailDecorator,
   EnumDecorator,
-  ImageDecorator,
   PhoneNumberDecorator,
   StringDecorator,
   UFDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { CompanyStatusType } from '@prisma/client';
-import { CategoryDto } from './category.dto';
+import {
+  CompanyStatusType,
+  RoleType,
+  User,
+  UserStatusType,
+} from '@prisma/client';
 
-export class UpdateCompanyDto {
+export class CompanyUserEntity {
   @UuidDecorator()
   id: string;
 
-  @StringDecorator({ required: false })
-  name?: string;
+  @StringDecorator()
+  firstName: string;
 
-  @EmailDecorator({ required: false })
-  email?: string;
+  @StringDecorator()
+  lastName: string;
+
+  @UuidDecorator()
+  companyId: string;
+
+  @EnumDecorator({ enumType: RoleType })
+  role: RoleType;
+
+  @EmailDecorator()
+  email: string;
 
   @StringDecorator({ required: false })
   description?: string;
-
-  @ImageDecorator({ description: 'Image', required: false, empty: true })
-  logo?: string;
-
-  @ArrayDecorator({ type: CategoryDto, required: false })
-  categories?: CategoryDto[];
-
-  @EnumDecorator({ enumType: CompanyStatusType, required: false })
-  status?: CompanyStatusType;
 
   @CpfCnpjDecorator({ required: false })
   cpfCnpj?: string;
@@ -62,6 +65,16 @@ export class UpdateCompanyDto {
   @CepDecorator({ required: false })
   cep?: string;
 
-  @StringDecorator({ required: false })
-  responsible?: string;
+  @EnumDecorator({ enumType: CompanyStatusType, required: false })
+  status: UserStatusType;
+
+  @DateDecorator({ description: 'Creating date.' })
+  createdAt: string;
+
+  @DateDecorator({ description: 'Deleting date.', required: false })
+  deletedAt?: string;
+
+  constructor(data: User) {
+    Object.keys(data).forEach((key) => (this[key] = data[key]));
+  }
 }

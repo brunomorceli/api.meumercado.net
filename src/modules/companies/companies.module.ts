@@ -8,10 +8,11 @@ import {
   JwtStrategy,
   BucketsModule,
 } from '@App/shared';
+import { CompaniesUsersController } from './companies-users.controller';
 
 @Module({
   imports: [BucketsModule, AuthModule],
-  controllers: [CompaniesController],
+  controllers: [CompaniesController, CompaniesUsersController],
   providers: [MessagesService, PrismaService, JwtStrategy, CompaniesService],
   exports: [CompaniesService],
 })

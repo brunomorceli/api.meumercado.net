@@ -1,3 +1,4 @@
+export * from './company-users';
 export * from './category.dto';
 export * from './create-company.dto';
 export * from './update-company.dto';
