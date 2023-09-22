@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Body,
-  Get,
-  Req,
-  Param,
-  Query,
-  Patch,
-  Delete,
-} from '@nestjs/common';
+import { Controller, Body, Get, Param, Query, Patch } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FindCompanyDto, FindCompanyResultDto, UpdateCompanyDto } from './dtos';
@@ -21,11 +12,8 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Patch()
-  update(
-    @Req() req: any,
-    @Body() updateCompanyDto: UpdateCompanyDto,
-  ): Promise<CompanyEntity> {
-    return this.companiesService.update(req.user, updateCompanyDto);
+  update(@Body() updateCompanyDto: UpdateCompanyDto): Promise<CompanyEntity> {
+    return this.companiesService.update(updateCompanyDto);
   }
 
   @Public()
@@ -38,15 +26,5 @@ export class CompaniesController {
   @Get('find')
   find(@Query() findCompanyDto: FindCompanyDto): Promise<FindCompanyResultDto> {
     return this.companiesService.find(findCompanyDto);
-  }
-
-  @Get('find-by-owner')
-  findByOwner(@Req() req: any): Promise<FindCompanyResultDto> {
-    return this.companiesService.findByOwner(req.user.ownerId);
-  }
-
-  @Delete(':id')
-  delete(@Req() req: any, @Param() props: IdParamDto): Promise<void> {
-    return this.companiesService.delete(req.user, props.id);
   }
 }

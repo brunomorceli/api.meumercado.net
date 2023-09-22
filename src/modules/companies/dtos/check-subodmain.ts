@@ -5,5 +5,5 @@ export class CheckTenantIdDto {
   companyId?: string;
 
   @TenantIdDecorator()
-  tenantId: string;
+  slug: string;
 }

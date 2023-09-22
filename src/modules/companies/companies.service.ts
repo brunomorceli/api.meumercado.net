@@ -4,7 +4,7 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { CompanyStatusType, User } from '@prisma/client';
+import { CompanyStatusType, RoleType, UserStatusType } from '@prisma/client';
 import { PrismaService, PaginationDto, BucketsService } from '@App/shared';
 import {
   CreateCompanyDto,
@@ -25,110 +25,76 @@ export class CompaniesService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async create(
-    createCompanyDto: CreateCompanyDto,
-    prismaHandler?: any,
-  ): Promise<CompanyEntity> {
-    const prisma = prismaHandler || this.prismaService;
-    const { email, label } = createCompanyDto;
+  async create(createCompanyDto: CreateCompanyDto): Promise<CompanyEntity> {
+    const { companyName, email, userFirstName, userLastName } =
+      createCompanyDto;
 
-    const user = await prisma.user.findFirst({ where: { email } });
-    if (!user) {
-      throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
-    }
+    const company = await this.prismaService.$transaction(async (prisma) => {
+      const existing: any = await prisma.company.findFirst({
+        where: { email },
+      });
 
-    const tenantId = await this.getTenantId(label, prisma);
+      if (existing) {
+        throw new HttpException(
+          'O email já se encontra em uso.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
 
-    const creatingData: any = {
-      id: randomUUID(),
-      ownerId: user.id,
-      label,
-      slug: Slug(label),
-      tenantId,
-      categories: [{ label: 'Geral', value: randomUUID() }],
-      roles: [
-        {
-          id: randomUUID(),
-          label: 'Proprietário',
-          permissions: {
-            roles: ['edit', 'view', 'delete'],
-            companies: ['edit', 'view', 'delete'],
-            orders: ['edit', 'view', 'delete'],
-            products: ['edit', 'view', 'delete'],
-            employees: ['edit', 'view', 'delete'],
-            clients: ['edit', 'view', 'delete'],
-          },
+      const tenantId = await this.getTenantId(companyName, prisma);
+      const company = await prisma.company.create({
+        data: {
+          name: companyName,
+          email,
+          categories: [{ label: 'Geral', value: randomUUID() }],
+          status: CompanyStatusType.ACTIVE,
+          tenantId,
         },
-        {
-          id: randomUUID(),
-          label: 'Admin',
-          permissions: {
-            roles: ['edit', 'view'],
-            companies: ['edit', 'view'],
-            orders: ['edit', 'view', 'delete'],
-            products: ['edit', 'view', 'delete'],
-            employees: ['edit', 'view', 'delete'],
-            clients: ['edit', 'view', 'delete'],
-          },
-        },
-        {
-          id: randomUUID(),
-          label: 'Entregador',
-          permissions: {
-            roles: [],
-            companies: ['view'],
-            orders: ['view'],
-            products: ['view'],
-            employees: [],
-            clients: ['view'],
-          },
-        },
-      ],
-    };
+      });
 
-    const company = await prisma.company.create({
-      data: creatingData,
+      await prisma.user.create({
+        data: {
+          companyId: company.id,
+          firstName: userFirstName,
+          lastName: userLastName,
+          email,
+          role: RoleType.OWNER,
+          status: UserStatusType.ACTIVE,
+        },
+      });
+
+      return company;
     });
 
     return new CompanyEntity(company);
   }
 
-  async update(
-    user: User,
-    updateCompanyDto: UpdateCompanyDto,
-  ): Promise<CompanyEntity> {
-    const ownerId = user.ownerId;
-    const { id, label, logo } = updateCompanyDto;
+  async update(updateCompanyDto: UpdateCompanyDto): Promise<CompanyEntity> {
+    const { id, ...updateData } = updateCompanyDto;
 
     let company = await this.prismaService.company.findFirst({
-      where: { ownerId, id, status: { not: CompanyStatusType.DELETED } },
+      where: { id },
     });
 
     if (!company) {
       throw new BadRequestException('Empresa não encontrada');
     }
 
-    const updateData: any = { ...updateCompanyDto };
+    company = await this.prismaService.$transaction(async (prisma) => {
+      if (updateData.logo && updateData.logo.indexOf('data:image') === 0) {
+        await this.bucketService.uploadImage(
+          this.bucketName,
+          id,
+          updateData.logo,
+        );
 
-    if (label) {
-      updateData.slug = Slug(label);
-    }
+        updateData.logo = this.bucketService.getImageUrl(this.bucketName, id);
+      }
 
-    if (logo && logo.indexOf('data:image') === 0) {
-      await this.bucketService.uploadImage(
-        this.bucketName,
-        updateData.id,
-        logo,
-      );
-      updateData.logo = this.bucketService.getImageUrl(
-        this.bucketName,
-        updateData.id,
-      );
-    }
-
-    company = await this.prismaService.company.update({
-      where: { id },
-      data: updateData,
+      return await prisma.company.update({
+        where: { id },
+        data: updateData as any,
+      });
     });
 
     return new CompanyEntity(company);
@@ -136,7 +102,7 @@ export class CompaniesService {
 
   async get(id: string): Promise<CompanyEntity> {
     const company = await this.prismaService.company.findFirst({
-      where: { id, status: { not: CompanyStatusType.DELETED } },
+      where: { id, deletedAt: null },
     });
 
     if (!company) {
@@ -147,49 +113,38 @@ export class CompaniesService {
   }
 
   async find(findCompanyDto: FindCompanyDto): Promise<FindCompanyResultDto> {
-    const where: any = { status: { not: CompanyStatusType.DELETED } };
+    const where: any = {};
     const paginationData = FindCompanyDto.getPaginationParams(
       FindCompanyDto as PaginationDto,
     );
 
-    if (findCompanyDto.ownerId) {
-      where.ownerId = findCompanyDto.ownerId;
-    }
-
-    if (findCompanyDto.label) {
-      where.slug = { startsWith: Slug(findCompanyDto.label) };
-    }
-
-    if (findCompanyDto.tenantId) {
-      where.tenantId = {
-        startsWith: findCompanyDto.tenantId,
-        mode: 'insensitive',
-      };
+    if (findCompanyDto.name) {
+      where.tenantId = { startsWith: Slug(findCompanyDto.name) };
     }
 
     if (findCompanyDto.address) {
-      where.tenantId = {
+      where.address = {
         startsWith: findCompanyDto.address,
         mode: 'insensitive',
       };
     }
 
     if (findCompanyDto.neighborhood) {
-      where.tenantId = {
+      where.neighborhood = {
         startsWith: findCompanyDto.neighborhood,
         mode: 'insensitive',
       };
     }
 
     if (findCompanyDto.city) {
-      where.tenantId = {
+      where.city = {
         startsWith: findCompanyDto.city,
         mode: 'insensitive',
       };
     }
 
     if (findCompanyDto.state) {
-      where.tenantId = {
+      where.state = {
         startsWith: findCompanyDto.state,
         mode: 'insensitive',
       };
@@ -199,50 +154,20 @@ export class CompaniesService {
       where.status = findCompanyDto.status;
     }
 
-    let companies = [];
-    const total = await this.prismaService.company.count({
+    const total = await this.prismaService.company.count({ where });
+
+    const companies = await this.prismaService.company.findMany({
       where,
       skip: paginationData.skip,
+      take: paginationData.limit,
     });
-
-    if (total !== 0) {
-      companies = await this.prismaService.company.findMany({
-        where,
-        skip: paginationData.skip,
-        take: paginationData.limit,
-      });
-    }
 
     return {
-      page: where.page,
-      limit: where.limit,
+      page: paginationData.page,
+      limit: paginationData.limit,
       total,
-      data: companies.map((c) => new CompanyEntity(c)) || [],
+      data: companies.map((c: any) => new CompanyEntity(c)) || [],
     };
-  }
-
-  async findByOwner(ownerId: string): Promise<FindCompanyResultDto> {
-    return this.find({ ownerId });
-  }
-
-  async delete(user: User, id: string): Promise<void> {
-    const ownerId = user.ownerId;
-
-    const company = await this.prismaService.company.findFirst({
-      where: { ownerId, id, status: { not: CompanyStatusType.DELETED } },
-    });
-
-    if (!company) {
-      throw new BadRequestException('Empresa não encontrada');
-    }
-
-    await this.prismaService.company.update({
-      where: { id: company.id },
-      data: {
-        status: CompanyStatusType.DELETED,
-        deletedAt: new Date(),
-      },
-    });
   }
 
   async getTenantId(label: string, prismaHandler?: any): Promise<string> {
@@ -250,7 +175,7 @@ export class CompaniesService {
     const slug = Slug(label);
 
     const company = await prisma.company.findFirst({
-      where: { slug },
+      where: { tenantId: slug },
     });
 
     if (!company) {
@@ -258,16 +183,50 @@ export class CompaniesService {
     }
 
     const raw: any = await prisma.$queryRaw`
-      select slug
+      select tenant_id
       from companies
-      where slug ~ '^${slug}[0-9]+$' order by id desc limit 1;
+      where tenant_id ~ '^${slug}[0-9]+$' order by id desc limit 1;
     `;
 
     if (!raw || raw.length === 0) {
       return `${slug}1`;
     }
 
-    const last: number = Number(raw[0].slug.replace(/[^0-9]/g, ''));
+    const last: number = Number(raw[0].slug.replace(slug, ''));
     return `${slug}${last + 1}`;
   }
+
+  /*async addUser(
+    owner: User,
+    createCompanyUserDto: CreateCompanyUserDto,
+  ): Promise<CompanyUserEntity> {
+    const { email, firstName, lastName, phoneNumber, cpfCnpj } =
+      createCompanyUserDto;
+    let user = await this.prismaService.user.findFirst({
+      where: { email },
+    });
+
+    if (!!user) {
+      throw new HttpException(
+        'Email já se encontra em uso.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.prismaService.$transaction(async (prisma) => {
+      const ownerId = owner.id;
+      const userId = randomUUID();
+      user = prisma.user.create({
+        data: {
+          email,
+          id: userId,
+          ownerId,
+          firstName,
+          lastName,
+          phoneNumber,
+          cpfCnpj,
+        },
+      });
+    });
+  }*/
 }

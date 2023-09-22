@@ -31,7 +31,7 @@ export class ProductsController {
     @Req() req: any,
     @Body() createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
-    return this.productsService.create(req.user, createProductDto);
+    return this.productsService.create(req.user.company.id, createProductDto);
   }
 
   @Patch()
@@ -39,12 +39,12 @@ export class ProductsController {
     @Req() req: any,
     @Body() updateProductDto: UpdateProductDto,
   ): Promise<ProductEntity> {
-    return this.productsService.update(req.user, updateProductDto);
+    return this.productsService.update(req.user.company.id, updateProductDto);
   }
 
   @Get(':id/get')
   get(@Req() req: any, @Param() props: IdParamDto): Promise<ProductEntity> {
-    return this.productsService.get(req.user, props.id);
+    return this.productsService.get(req.user.company.id, props.id);
   }
 
   @Get('find')
@@ -52,11 +52,11 @@ export class ProductsController {
     @Req() req,
     @Query() findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
-    return this.productsService.find(req.user, findProductDto);
+    return this.productsService.find(req.user.company.id, findProductDto);
   }
 
   @Delete(':id')
   delete(@Req() req: any, @Param() props: IdParamDto): Promise<void> {
-    return this.productsService.delete(req.user, props.id);
+    return this.productsService.delete(req.user.company.id, props.id);
   }
 }

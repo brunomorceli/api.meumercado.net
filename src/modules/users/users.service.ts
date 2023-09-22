@@ -1,10 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import {
-  AuthenticationStatusType,
-  CompanyStatusType,
-  CompanyUserStatusType,
-  CompanyUserType,
-} from '@prisma/client';
+import { AuthenticationStatusType } from '@prisma/client';
 import { PrismaService, MessagesService } from '@App/shared/modules';
 import { GeneralUtils } from '@App/shared';
 import { SignupDto } from './dtos/signup.dto';
@@ -15,7 +10,6 @@ import {
   SigninDto,
   SigninResponseDto,
 } from './dtos';
-import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -44,48 +38,18 @@ export class UsersService {
   }
 
   async signup(signupDto: SignupDto): Promise<void> {
-    const { email, label, firstName, lastName } = signupDto;
-
-    const user = await this.prismaService.user.findUnique({
-      where: { email },
-      include: { company: true },
-    });
-
-    if (user) {
-      throw new HttpException(
-        'Email já se encontra em uso.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    await this.prismaService.$transaction(async (prisma) => {
-      const userId = randomUUID();
-      const user = await prisma.user.create({
-        data: { id: userId, ownerId: userId, email, firstName, lastName },
-      });
-
-      const company = await this.companiesService.create(
-        { email, label },
-        prisma,
-      );
-
-      await prisma.companyUser.create({
-        data: {
-          type: CompanyUserType.OWNER,
-          status: CompanyUserStatusType.ACTIVE,
-          userId: user.id,
-          companyId: company.id,
-          roles: company.roles.map((r) => r.id),
-        },
-      });
+    await this.companiesService.create({
+      email: signupDto.email,
+      companyName: signupDto.label,
+      userFirstName: signupDto.firstName,
+      userLastName: signupDto.lastName,
     });
   }
 
   async signin(signinDto: SigninDto): Promise<SigninResponseDto> {
     const { email } = signinDto;
 
-    const user = await this.prismaService.user.findUnique({
-      where: { email },
+    const user = await this.prismaService.user.findFirst({
       include: { company: true },
     });
 
@@ -125,7 +89,7 @@ export class UsersService {
     });
 
     return Promise.resolve({
-      tenantId: user.company.id,
+      tenantId: user.company.tenantId,
       authId: auth.id,
     });
   }
@@ -141,7 +105,11 @@ export class UsersService {
         status: AuthenticationStatusType.PENDING,
         confirmationExpiredAt: { gt: now },
       },
-      include: { user: true },
+      include: {
+        user: {
+          include: { company: true },
+        },
+      },
     });
 
     if (!authentication) {
@@ -149,28 +117,9 @@ export class UsersService {
     }
 
     const user = authentication.user;
-
-    const company = await this.prismaService.company.findFirst({
-      where: {
-        ownerId: authentication.user.id,
-        status: { not: CompanyStatusType.DELETED },
-      },
-    });
-
-    const companyUser = await this.prismaService.companyUser.findFirst({
-      where: {
-        companyId: company.id,
-        userId: user.id,
-      },
-    });
-
-    if (!company) {
-      throw new HttpException('Registro inválido.', HttpStatus.BAD_REQUEST);
-    }
-
     const jwt = GeneralUtils.generateJwt({
       userId: authentication.user.id,
-      companyId: company.id,
+      companyId: user.company.id,
     });
 
     await this.prismaService.authentication.update({
@@ -184,18 +133,12 @@ export class UsersService {
 
     return {
       token: jwt.token,
-      type: authentication.user.type,
-      user: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        roles: (company.roles as any[]).filter((r) =>
-          companyUser.roles.includes(r.id),
-        ),
-      },
-      company: {
-        id: company.id,
-        tenantId: company.tenantId,
-      },
+      userName: `${user.firstName} ${user.lastName}`,
+      role: user.role,
+      companyId: user.company.id,
+      tenantId: user.company.tenantId,
+      companyName: user.company.name,
+      logo: user.company.logo,
     };
   }
 }

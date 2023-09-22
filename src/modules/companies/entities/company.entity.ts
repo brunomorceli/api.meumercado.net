@@ -1,63 +1,26 @@
 import {
   ArrayDecorator,
-  CepDecorator,
   DateDecorator,
-  EmailDecorator,
+  EntityDto,
   EnumDecorator,
   ImageDecorator,
-  NumberDecorator,
-  PhoneNumberDecorator,
-  RoleDto,
-  SlugDecorator,
   StringDecorator,
-  UFDecorator,
   UuidDecorator,
 } from '@App/shared';
 import { Company, CompanyStatusType } from '@prisma/client';
 import { CategoryDto } from '../dtos';
+import { IsInstance, IsOptional } from 'class-validator';
 
 export class CompanyEntity {
   @UuidDecorator()
   id: string;
 
-  @StringDecorator()
-  label: string;
-
-  @SlugDecorator()
-  slug: string;
-
-  @StringDecorator()
-  address: string;
+  @IsInstance(EntityDto)
+  @IsOptional()
+  entity: EntityDto;
 
   @StringDecorator({ required: false })
   description?: string;
-
-  @StringDecorator({ required: false })
-  addressComplement?: string;
-
-  @StringDecorator()
-  neighborhood: string;
-
-  @StringDecorator()
-  city: string;
-
-  @UFDecorator()
-  state: string;
-
-  @NumberDecorator({ min: 0 })
-  addressNumber: string;
-
-  @CepDecorator()
-  cep: string;
-
-  @PhoneNumberDecorator({ onlyNumbers: true, empty: true })
-  phoneNumber: string;
-
-  @EmailDecorator({ required: false })
-  email?: string;
-
-  @StringDecorator({ required: false })
-  manager?: string;
 
   @ImageDecorator({ required: false })
   logo?: string;
@@ -67,9 +30,6 @@ export class CompanyEntity {
 
   @EnumDecorator({ enumType: CompanyStatusType })
   status: CompanyStatusType;
-
-  @ArrayDecorator({ type: RoleDto })
-  roles: RoleDto[];
 
   @DateDecorator({ description: 'Creating date.' })
   createdAt: string;

@@ -1,20 +1,13 @@
-import { RoleDto, StringDecorator } from '@App/shared';
+import { StringDecorator } from '@App/shared';
+import { RoleType } from '@prisma/client';
 
 export class ConfirmResponseDto {
   @StringDecorator({ description: 'Access token.' })
   token: string;
-
-  user: {
-    firstName: string;
-    lastName: string;
-    roles: RoleDto[];
-  };
-
-  @StringDecorator({ description: 'User role.' })
-  type: string;
-
-  company: {
-    id: string;
-    tenantId: string;
-  };
+  userName: string;
+  role: RoleType;
+  companyId: string;
+  tenantId: string;
+  companyName: string;
+  logo?: string;
 }

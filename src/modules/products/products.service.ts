@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@App/shared/modules/prisma';
 import { BucketsService } from '@App/shared';
-import { ProductStatusType, User } from '@prisma/client';
+import { ProductStatusType } from '@prisma/client';
 import {
   CreateProductDto,
   FindProductDto,
@@ -22,13 +22,12 @@ export class ProductsService {
   ) {}
 
   async create(
-    user: User,
+    companyId: string,
     createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
-    const ownerId = user.ownerId;
     const data: any = {
       ...createProductDto,
-      ownerId,
+      companyId,
       id: randomUUID(),
       status: createProductDto.status || ProductStatusType.ACTIVE,
       slug: Slug(createProductDto.label),
@@ -36,9 +35,9 @@ export class ProductsService {
 
     let product = await this.prismaService.product.findFirst({
       where: {
-        ownerId,
+        companyId,
         slug: data.slug,
-        status: { not: ProductStatusType.DELETED },
+        deletedAt: null,
       },
     });
 
@@ -68,14 +67,13 @@ export class ProductsService {
   }
 
   async update(
-    user: User,
+    companyId: string,
     updateProductDto: UpdateProductDto,
   ): Promise<ProductEntity> {
-    const ownerId = user.ownerId;
     const { id, ...updateData } = updateProductDto;
 
     let product = await this.prismaService.product.findFirst({
-      where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
+      where: { companyId, id, deletedAt: null },
     });
 
     if (!product) {
@@ -109,7 +107,7 @@ export class ProductsService {
         where: {
           id: { not: id },
           slug,
-          status: { not: ProductStatusType.DELETED },
+          deletedAt: null,
         },
       });
 
@@ -125,17 +123,16 @@ export class ProductsService {
         measures: updateData.measures as any,
         attributes: updateData.attributes as any,
         slug,
+        updatedAt: new Date(),
       },
     });
 
     return new ProductEntity(product);
   }
 
-  async get(user: User, id: string): Promise<ProductEntity> {
-    const ownerId = user.ownerId;
-
+  async get(companyId: string, id: string): Promise<ProductEntity> {
     const product = await this.prismaService.product.findFirst({
-      where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
+      where: { companyId, id, deletedAt: null },
     });
 
     if (!product) {
@@ -146,14 +143,13 @@ export class ProductsService {
   }
 
   async find(
-    user: User,
+    companyId: string,
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
-    const ownerId = user.ownerId;
-    const { label, status, categoryId, companyId } = findProductDto;
+    const { label, status, categoryId } = findProductDto;
     const where: any = {
-      ownerId,
-      status: { not: ProductStatusType.DELETED },
+      companyId: findProductDto.companyId || companyId,
+      deletedAt: null,
     };
     const paginationData = FindProductDto.getPaginationParams(findProductDto);
 
@@ -167,10 +163,6 @@ export class ProductsService {
 
     if (categoryId) {
       where.categories = { has: categoryId };
-    }
-
-    if (companyId) {
-      where.companyId = companyId;
     }
 
     let products = [];
@@ -194,11 +186,9 @@ export class ProductsService {
     };
   }
 
-  async delete(user: User, id: string): Promise<void> {
-    const ownerId = user.ownerId;
-
+  async delete(companyId: string, id: string): Promise<void> {
     const product = await this.prismaService.product.findFirst({
-      where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
+      where: { companyId, id, deletedAt: null },
     });
 
     if (!product) {
@@ -208,7 +198,7 @@ export class ProductsService {
     await this.prismaService.product.update({
       where: { id: product.id },
       data: {
-        status: ProductStatusType.DELETED,
+        updatedAt: new Date(),
         deletedAt: new Date(),
       },
     });

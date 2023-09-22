@@ -14,10 +14,10 @@ export class FindCompanyDto extends PaginationDto {
   ownerId?: string;
 
   @SlugDecorator({ required: false, minLength: 3 })
-  label?: string;
+  name?: string;
 
   @TenantIdDecorator({ required: false })
-  tenantId?: string;
+  slug?: string;
 
   @StringDecorator({ required: false })
   address?: string;
