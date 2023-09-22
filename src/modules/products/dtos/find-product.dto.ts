@@ -14,6 +14,9 @@ export class FindProductDto extends PaginationDto {
   @UuidDecorator({ required: false })
   categoryId?: string;
 
+  @UuidDecorator({ required: false })
+  companyId?: string;
+
   @StringDecorator({ required: false, minLength: 3 })
   label?: string;
 
@@ -29,4 +32,10 @@ export class FindProductDto extends PaginationDto {
 
   @NumberDecorator({ required: false })
   size?: number;
+
+  @StringDecorator({ required: false })
+  sku?: string;
+
+  @StringDecorator({ required: false })
+  barcode?: string;
 }

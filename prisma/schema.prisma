@@ -7,33 +7,116 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Company {
+  id                String            @id @default(uuid()) @db.Uuid
+  name              String
+  tenantId          String            @unique @map("tenant_id")
+  email             String            @unique
+  phoneNumber       String?           @map("phone_number")
+  address           String?
+  addressComplement String?           @map("address_complement")
+  neighborhood      String?
+  addressNumber     String?           @map("address_number")
+  city              String?
+  state             String?
+  cep               String?
+  responsible       String?
+  description       String?
+  logo              String?
+  categories        Json
+  status            CompanyStatusType @default(ACTIVE)
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  deletedAt         DateTime?         @map("deleted_at")
+
+  users    User[]
+  products Product[]
+
+  @@map("companies")
+}
+
 model User {
-  id        String         @id @default(uuid()) @db.Uuid
-  email     String         @unique
-  name      String?
-  type      UserType       @default(ADMIN)
-  status    UserStatusType @default(ACTIVE)
-  createdAt DateTime       @default(now()) @map("created_at")
-  updatedAt DateTime?      @updatedAt @map("updated_at")
-  userId    String?        @map("user_id")
-  ownerId   String?        @map("owner_id") @db.Uuid
-  owner     User?          @relation("owner", fields: [ownerId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  id                String         @id @default(uuid()) @db.Uuid
+  status            UserStatusType @default(ACTIVE)
+  companyId         String         @map("company_id") @db.Uuid
+  company           Company        @relation(fields: [companyId], references: [id])
+  role              RoleType       @default(CUSTOMER)
+  firstName         String
+  lastName          String
+  email             String         @unique
+  phoneNumber       String?        @map("phone_number")
+  cpfCnpj           String?        @map("cpf_cnpj")
+  address           String?
+  addressComplement String?        @map("address_complement")
+  neighborhood      String?
+  addressNumber     String?        @map("address_number")
+  city              String?
+  state             String?
+  cep               String?
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
+  deletedAt         DateTime?      @map("deleted_at")
 
   authentications Authentication[]
-  companies       Company[]
-  categories      Category[]
-  products        Product[]
-  owners          User[]           @relation("owner")
+  billingDatas    BillingData[]
+  deliveryDatas   DeliveryData[]
 
-  @@index([email])
   @@map("users")
+}
+
+model BillingData {
+  id                String  @id @default(uuid()) @db.Uuid
+  email             String
+  phoneNumber       String? @map("phone_number")
+  cpfCnpj           String? @map("cpf_cnpj")
+  address           String?
+  addressComplement String? @map("address_complement")
+  neighborhood      String?
+  addressNumber     String? @map("address_number")
+  city              String?
+  state             String?
+  cep               String?
+  responsible       String?
+
+  userId String? @map("user_id") @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("billing_data")
+}
+
+model DeliveryData {
+  id                String  @id @default(uuid()) @db.Uuid
+  email             String
+  phoneNumber       String? @map("phone_number")
+  cpfCnpj           String? @map("cpf_cnpj")
+  address           String?
+  addressComplement String? @map("address_complement")
+  neighborhood      String?
+  addressNumber     String? @map("address_number")
+  city              String?
+  state             String?
+  cep               String?
+  responsible       String?
+
+  userId String? @map("user_id") @db.Uuid
+  user   User?   @relation(fields: [userId], references: [id])
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("delivery_data")
 }
 
 model Authentication {
   id                    String                   @id @default(uuid()) @db.Uuid
   userId                String?                  @map("user_id") @db.Uuid
   user                  User?                    @relation(fields: [userId], references: [id])
-  confirmationCode      String?                  @unique
+  confirmationCode      String?                  @map("confirmation_code")
   metadata              Json?
   status                AuthenticationStatusType @default(PENDING)
   createdAt             DateTime                 @default(now()) @map("created_at")
@@ -46,80 +129,47 @@ model Authentication {
   @@map("authentications")
 }
 
-model Company {
-  id                String            @id @default(uuid()) @db.Uuid
-  label             String
-  slug              String
-  subdomain         String
-  description       String?
-  address           String
-  addressComplement String?           @map("address_complement")
-  neighborhood      String
-  addressNumber     Int               @map("address_number")
-  city              String
-  state             String
-  cep               String
-  logo              String?
-  phoneNumber       String            @map("phone_number")
-  status            CompanyStatusType @default(ACTIVE)
-  ownerId           String            @map("owner_id") @db.Uuid
-  owner             User              @relation(fields: [ownerId], references: [id])
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @updatedAt @map("updated_at")
-  deletedAt         DateTime?         @map("deleted_at")
-
-  products Product[]
-
-  @@index([slug])
-  @@index([subdomain])
-  @@map("companies")
-}
-
-model Category {
-  id        String             @id @default(uuid()) @db.Uuid
-  label     String
-  slug      String
-  cover     String?
-  color     String
-  status    CategoryStatusType @default(ACTIVE)
-  parentId  String?            @map("parent_id") @db.Uuid
-  parent    Category?          @relation("parent", fields: [parentId], references: [id])
-  ownerId   String             @map("owner_id") @db.Uuid
-  owner     User               @relation(fields: [ownerId], references: [id])
-  createdAt DateTime           @default(now()) @map("created_at")
-  updatedAt DateTime           @updatedAt @map("updated_at")
-  deletedAt DateTime?          @map("deleted_at")
-
-  parents  Category[] @relation("parent")
-  products Product[]
-
-  @@index([slug])
-  @@unique([slug, ownerId], name: "slug_owner")
-  @@map("categories")
-}
-
 model Product {
-  id          String            @id @default(uuid()) @db.Uuid
-  label       String
-  description String?
-  slug        String
-  cover       String?
-  unlimited   Boolean
-  quantity    Int
-  price       Int
-  status      ProductStatusType @default(ACTIVE)
-  ownerId     String            @map("owner_id") @db.Uuid
-  companyId   String            @map("company_id") @db.Uuid
-  company     Company           @relation(fields: [companyId], references: [id])
-  categoryId  String            @map("category_id") @db.Uuid
-  category    Category          @relation(fields: [categoryId], references: [id])
-  owner       User              @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime          @default(now()) @map("created_at")
-  updatedAt   DateTime          @updatedAt @map("updated_at")
-  deletedAt   DateTime?         @map("deleted_at")
+  id            String            @id @default(uuid()) @db.Uuid
+  label         String
+  description   String?
+  slug          String
+  unlimited     Boolean           @default(false)
+  quantity      Int?
+  showPrice     Boolean           @default(true) @map("show_price")
+  price         Int
+  discountPrice Int?              @map("discount_price")
+  sku           String?
+  barcode       String?
+  status        ProductStatusType @default(ACTIVE)
+  categories    String[]          @default([]) @db.Uuid
+  width String?
+  height String?
+  length String?
+  weight String?
+  attributes    Json
+  pictures      String[]
+  videos        String[]
+  type          ProductType       @default(PHYSIC)
+  companyId     String            @map("company_id") @db.Uuid
+  company       Company           @relation(fields: [companyId], references: [id])
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  deletedAt     DateTime?         @map("deleted_at")
 
   @@index([slug])
+  @@index([sku])
+  @@index([barcode])
+  @@index([categories])
   @@map("products")
+}
+
+enum RoleType {
+  OWNER
+  MEMBER
+  CUSTOMER
+  SUPPLIER
+  NONE
 }
 
 enum UserStatusType {
@@ -133,32 +183,17 @@ enum AuthenticationStatusType {
   INACTIVE
 }
 
-enum CategoryStatusType {
-  ACTIVE
-  INACTIVE
-  DELETED
-}
-
-enum UserType {
-  ADMIN
-  EMPLOYEE
-  CLIENT
-}
-
 enum ProductStatusType {
   ACTIVE
   INACTIVE
-  DELETED
 }
 
 enum CompanyStatusType {
   ACTIVE
   INACTIVE
-  DELETED
 }
 
-enum ProductDiscountType {
-  ACTIVE
-  INACTIVE
-  DELETED
+enum ProductType {
+  PHYSIC
+  DIGITAL
 }

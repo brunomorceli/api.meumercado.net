@@ -25,6 +25,7 @@ export * from './hexadecimal.decorator';
 export * from './hexacolor.decorator';
 export * from './cep.decorator';
 export * from './uf.decorator';
-export * from './subdomain.decorator';
+export * from './tenant-id.decorator';
 export * from './slug.decorator';
 export * from './image.decorator';
+export * from './image-array.decorator';

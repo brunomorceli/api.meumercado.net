@@ -3,7 +3,7 @@ import {
   PaginationDto,
   SlugDecorator,
   StringDecorator,
-  SubdomainDecorator,
+  TenantIdDecorator,
   UFDecorator,
   UuidDecorator,
 } from '@App/shared';
@@ -14,10 +14,10 @@ export class FindCompanyDto extends PaginationDto {
   ownerId?: string;
 
   @SlugDecorator({ required: false, minLength: 3 })
-  label?: string;
+  name?: string;
 
-  @SubdomainDecorator({ required: false })
-  subdomain?: string;
+  @TenantIdDecorator({ required: false })
+  slug?: string;
 
   @StringDecorator({ required: false })
   address?: string;

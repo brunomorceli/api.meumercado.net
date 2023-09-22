@@ -1,60 +1,32 @@
 import {
-  CepDecorator,
+  ArrayDecorator,
   DateDecorator,
+  EntityDto,
   EnumDecorator,
   ImageDecorator,
-  NumberDecorator,
-  PhoneNumberDecorator,
-  SlugDecorator,
   StringDecorator,
-  SubdomainDecorator,
-  UFDecorator,
   UuidDecorator,
 } from '@App/shared';
 import { Company, CompanyStatusType } from '@prisma/client';
+import { CategoryDto } from '../dtos';
+import { IsInstance, IsOptional } from 'class-validator';
 
 export class CompanyEntity {
   @UuidDecorator()
   id: string;
 
-  @StringDecorator()
-  label: string;
-
-  @SlugDecorator()
-  slug: string;
-
-  @SubdomainDecorator()
-  subdomain: string;
-
-  @StringDecorator()
-  address: string;
+  @IsInstance(EntityDto)
+  @IsOptional()
+  entity: EntityDto;
 
   @StringDecorator({ required: false })
   description?: string;
 
-  @StringDecorator({ required: false })
-  addressComplement?: string;
-
-  @StringDecorator()
-  neighborhood: string;
-
-  @StringDecorator()
-  city: string;
-
-  @UFDecorator()
-  state: string;
-
-  @NumberDecorator({ min: 0 })
-  addressNumber: string;
-
-  @CepDecorator()
-  cep: string;
-
-  @PhoneNumberDecorator({ onlyNumbers: true, empty: true })
-  phoneNumber: string;
-
   @ImageDecorator({ required: false })
   logo?: string;
+
+  @ArrayDecorator({ type: CategoryDto })
+  categories: CategoryDto[];
 
   @EnumDecorator({ enumType: CompanyStatusType })
   status: CompanyStatusType;

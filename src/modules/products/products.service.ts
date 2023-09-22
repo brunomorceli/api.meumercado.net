@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '@App/shared/modules/prisma';
 import { BucketsService } from '@App/shared';
-import { ProductStatusType, User } from '@prisma/client';
+import { ProductStatusType } from '@prisma/client';
 import {
   CreateProductDto,
   FindProductDto,
@@ -22,29 +22,22 @@ export class ProductsService {
   ) {}
 
   async create(
-    user: User,
+    companyId: string,
     createProductDto: CreateProductDto,
   ): Promise<ProductEntity> {
-    const ownerId = user.ownerId;
-    const {
+    const data: any = {
+      ...createProductDto,
       companyId,
-      label,
-      price,
-      quantity,
-      unlimited,
-      description,
-      cover,
-      status,
-      categoryId,
-    } = createProductDto;
-    const slug = Slug(label);
+      id: randomUUID(),
+      status: createProductDto.status || ProductStatusType.ACTIVE,
+      slug: Slug(createProductDto.label),
+    };
 
     let product = await this.prismaService.product.findFirst({
       where: {
-        ownerId,
         companyId,
-        slug,
-        status: { not: ProductStatusType.DELETED },
+        slug: data.slug,
+        deletedAt: null,
       },
     });
 
@@ -52,60 +45,59 @@ export class ProductsService {
       throw new BadRequestException('Já existe um produto com este nome.');
     }
 
-    const company = await this.prismaService.company.findFirst({
-      where: { id: companyId },
-    });
+    const pictures = [];
+    for (let i = 0; i < data.pictures.length; i++) {
+      const imageName = `${data.id}_${randomUUID()}`;
 
-    if (!company) {
-      throw new BadRequestException('Erro ao buscar empresa.');
+      await this.bucketsService.uploadImage(
+        this.bucketName,
+        imageName,
+        data.pictures[i],
+      );
+      pictures.push(
+        this.bucketsService.getImageUrl(this.bucketName, imageName),
+      );
     }
 
-    const data: any = {
-      id: randomUUID(),
-      label,
-      description,
-      slug,
-      status: status || ProductStatusType.ACTIVE,
-      ownerId,
-      price,
-      quantity,
-      unlimited,
-      companyId,
-      categoryId,
-    };
+    data.pictures = pictures;
 
-    if (cover) {
-      await this.bucketsService.uploadImage(this.bucketName, data.id, cover);
-      data.cover = this.bucketsService.getImageUrl(this.bucketName, data.id);
-    }
-
-    product = await this.prismaService.product.create({
-      data,
-      include: { category: true },
-    });
+    product = await this.prismaService.product.create({ data });
 
     return new ProductEntity(product);
   }
 
   async update(
-    user: User,
+    companyId: string,
     updateProductDto: UpdateProductDto,
   ): Promise<ProductEntity> {
-    const ownerId = user.ownerId;
-    const { id, cover, ...updateData } = updateProductDto;
+    const { id, ...updateData } = updateProductDto;
 
     let product = await this.prismaService.product.findFirst({
-      where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
+      where: { companyId, id, deletedAt: null },
     });
 
     if (!product) {
       throw new BadRequestException('Produto não encontrado.');
     }
 
-    let newCover: any = null;
-    if (cover && cover.indexOf('data:image') === 0) {
-      await this.bucketsService.uploadImage(this.bucketName, product.id, cover);
-      newCover = this.bucketsService.getImageUrl(this.bucketName, product.id);
+    if (updateData.pictures) {
+      for (let i = 0; i < updateData.pictures.length; i++) {
+        if (updateData.pictures[i].indexOf('data:image') !== 0) {
+          continue;
+        }
+
+        const imageName = `${product.id}_${randomUUID()}`;
+        await this.bucketsService.uploadImage(
+          this.bucketName,
+          imageName,
+          updateData.pictures[i],
+        );
+
+        updateData.pictures[i] = this.bucketsService.getImageUrl(
+          this.bucketName,
+          imageName,
+        );
+      }
     }
 
     const slug = Slug(updateProductDto.label || product.label);
@@ -115,7 +107,7 @@ export class ProductsService {
         where: {
           id: { not: id },
           slug,
-          status: { not: ProductStatusType.DELETED },
+          deletedAt: null,
         },
       });
 
@@ -126,18 +118,20 @@ export class ProductsService {
 
     product = await this.prismaService.product.update({
       where: { id },
-      data: { ...updateData, slug, cover: newCover || product.cover },
-      include: { category: true },
+      data: {
+        ...updateData,
+        attributes: updateData.attributes as any,
+        slug,
+        updatedAt: new Date(),
+      },
     });
 
     return new ProductEntity(product);
   }
 
-  async get(user: User, id: string): Promise<ProductEntity> {
-    const ownerId = user.ownerId;
-
+  async get(companyId: string, id: string): Promise<ProductEntity> {
     const product = await this.prismaService.product.findFirst({
-      where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
+      where: { companyId, id, deletedAt: null },
     });
 
     if (!product) {
@@ -148,14 +142,13 @@ export class ProductsService {
   }
 
   async find(
-    user: User,
+    companyId: string,
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
-    const ownerId = user.ownerId;
     const { label, status, categoryId } = findProductDto;
     const where: any = {
-      ownerId,
-      status: { not: ProductStatusType.DELETED },
+      companyId: findProductDto.companyId || companyId,
+      deletedAt: null,
     };
     const paginationData = FindProductDto.getPaginationParams(findProductDto);
 
@@ -168,7 +161,7 @@ export class ProductsService {
     }
 
     if (categoryId) {
-      where.categoryId = categoryId;
+      where.categories = { has: categoryId };
     }
 
     let products = [];
@@ -179,7 +172,6 @@ export class ProductsService {
     if (total !== 0) {
       products = await this.prismaService.product.findMany({
         where,
-        include: { category: true },
         skip: paginationData.skip,
         take: paginationData.limit,
       });
@@ -193,11 +185,9 @@ export class ProductsService {
     };
   }
 
-  async delete(user: User, id: string): Promise<void> {
-    const ownerId = user.ownerId;
-
+  async delete(companyId: string, id: string): Promise<void> {
     const product = await this.prismaService.product.findFirst({
-      where: { ownerId, id, status: { not: ProductStatusType.DELETED } },
+      where: { companyId, id, deletedAt: null },
     });
 
     if (!product) {
@@ -207,7 +197,7 @@ export class ProductsService {
     await this.prismaService.product.update({
       where: { id: product.id },
       data: {
-        status: ProductStatusType.DELETED,
+        updatedAt: new Date(),
         deletedAt: new Date(),
       },
     });

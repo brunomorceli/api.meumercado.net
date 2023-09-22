@@ -35,6 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         include: {
           user: {
             where: { id: userId },
+            include: { company: true },
           },
         },
       });

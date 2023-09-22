@@ -1,20 +1,23 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
-import { Regex } from '../utils';
+import { IsArray, IsNotEmpty, IsOptional, Validate } from 'class-validator';
 import { DefaultPropertyDecoratorOptions } from './default-property-decorator-options';
+import { Regex } from '../utils';
 
-export const SubdomainDecorator = (data?: DefaultPropertyDecoratorOptions) => {
+export const ImageArrayDecorator = (data?: DefaultPropertyDecoratorOptions) => {
   const decorators = [
-    IsString(),
-    Matches(Regex.SUBDOMAIN, {
-      message: 'O subdomínio deve iniciar com letras.',
+    IsArray(),
+    Validate((val) => {
+      if (val.some((v) => !Regex.URL_OR_BLOB.test(v))) {
+        return false;
+      }
+
+      return true;
     }),
     ApiProperty({
-      description: 'Subdomain format',
+      description: 'Image URL or a hexadecilmal blob image arry',
       type: String,
-      pattern: RegExp(Regex.SUBDOMAIN).toString(),
-      example: 'foo, foobar, foobar123, hello123world',
+      example: '["http:foobar.com", "data:image/png;..."]',
       ...data,
     }),
   ];

@@ -1,46 +1,15 @@
-import {
-  CepDecorator,
-  ImageDecorator,
-  NumberDecorator,
-  StringDecorator,
-  SubdomainDecorator,
-  UFDecorator,
-} from '@App/shared';
+import { EmailDecorator, StringDecorator } from '@App/shared';
 
 export class CreateCompanyDto {
   @StringDecorator()
-  label: string;
-
-  @SubdomainDecorator()
-  subdomain: string;
-
-  @StringDecorator({ required: false })
-  description?: string;
+  companyName: string;
 
   @StringDecorator()
-  address: string;
+  userFirstName: string;
 
   @StringDecorator()
-  addressComplement: string;
+  userLastName: string;
 
-  @StringDecorator()
-  neighborhood: string;
-
-  @NumberDecorator({ min: 0 })
-  addressNumber: number;
-
-  @StringDecorator()
-  city: string;
-
-  @UFDecorator()
-  state: string;
-
-  @CepDecorator()
-  cep: string;
-
-  @StringDecorator()
-  phoneNumber: string;
-
-  @ImageDecorator({ description: 'Image', required: false })
-  logo?: string;
+  @EmailDecorator()
+  email: string;
 }

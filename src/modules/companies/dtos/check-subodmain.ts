@@ -1,9 +1,9 @@
-import { SubdomainDecorator, UuidDecorator } from '@App/shared';
+import { TenantIdDecorator, UuidDecorator } from '@App/shared';
 
-export class CheckSubdomainDto {
+export class CheckTenantIdDto {
   @UuidDecorator({ required: false })
   companyId?: string;
 
-  @SubdomainDecorator()
-  subdomain: string;
+  @TenantIdDecorator()
+  slug: string;
 }

@@ -1,12 +1,14 @@
 import {
+  ArrayDecorator,
   BooleanDecorator,
   EnumDecorator,
-  ImageDecorator,
+  ImageArrayDecorator,
   NumberDecorator,
   StringDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { ProductStatusType } from '@prisma/client';
+import { ProductStatusType, ProductType } from '@prisma/client';
+import { AttributeDto } from './attribute.dto';
 
 export class UpdateProductDto {
   @UuidDecorator()
@@ -24,14 +26,47 @@ export class UpdateProductDto {
   @NumberDecorator({ min: 1, required: false })
   quantity?: number;
 
+  @BooleanDecorator()
+  showPrice: boolean;
+
   @NumberDecorator({ min: 0, required: false })
   price?: number;
 
-  @ImageDecorator({ required: false })
-  cover?: string;
+  @NumberDecorator({ min: 0, required: false })
+  discountPrice?: number;
 
-  @UuidDecorator({ required: false })
-  categoryId?: string;
+  @StringDecorator({ required: false })
+  sku?: string;
+
+  @StringDecorator({ required: false })
+  barcode?: string;
+
+  @ArrayDecorator({ type: String, required: false })
+  videos?: string[];
+
+  @ImageArrayDecorator({ required: false })
+  pictures?: string[];
+
+  @StringDecorator({ required: false })
+  width?: string;
+
+  @StringDecorator({ required: false })
+  height?: string;
+
+  @StringDecorator({ required: false })
+  length?: string;
+
+  @StringDecorator({ required: false })
+  weight?: string;
+
+  @ArrayDecorator({ type: AttributeDto, required: false })
+  attributes?: AttributeDto[];
+
+  @EnumDecorator({ enumType: ProductType, required: false })
+  type?: ProductType;
+
+  @ArrayDecorator({ type: String })
+  categories: string[];
 
   @EnumDecorator({ enumType: ProductStatusType, required: false })
   status?: ProductStatusType;

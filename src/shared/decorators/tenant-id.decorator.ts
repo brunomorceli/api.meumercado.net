@@ -1,31 +1,26 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsNumberString,
-  ValidateIf,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
+import { Regex } from '../utils';
 import { DefaultPropertyDecoratorOptions } from './default-property-decorator-options';
 
-export const StringNumberDecorator = (
-  dataParams?: DefaultPropertyDecoratorOptions,
-) => {
-  const data = dataParams || {};
+export const TenantIdDecorator = (data?: DefaultPropertyDecoratorOptions) => {
   const decorators = [
-    IsNumberString(),
+    IsString(),
+    Matches(Regex.SUBDOMAIN, {
+      message: 'O subdomínio deve iniciar com letras.',
+    }),
     ApiProperty({
-      description: 'Simple Numeric',
+      description: 'TenantId format',
       type: String,
-      example: '1234',
+      pattern: RegExp(Regex.SUBDOMAIN).toString(),
+      example: 'foo, foobar, foobar123, hello123world',
       ...data,
     }),
   ];
 
   if (data && data.empty !== true) {
     decorators.push(IsNotEmpty());
-  } else {
-    decorators.push(ValidateIf((e) => e !== ''));
   }
 
   if (data && data.required === false) {
