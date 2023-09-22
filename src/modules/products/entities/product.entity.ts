@@ -9,7 +9,7 @@ import {
   UuidDecorator,
 } from '@App/shared';
 import { Product, ProductStatusType, ProductType } from '@prisma/client';
-import { AttributeDto, ProductMeasureDto } from '../dtos';
+import { AttributeDto } from '../dtos';
 
 export class ProductEntity {
   @UuidDecorator()
@@ -51,8 +51,17 @@ export class ProductEntity {
   @ImageArrayDecorator()
   pictures: string[];
 
-  @ArrayDecorator({ type: ProductMeasureDto })
-  measures: ProductMeasureDto[];
+  @StringDecorator({ required: false })
+  width?: string;
+
+  @StringDecorator({ required: false })
+  height?: string;
+
+  @StringDecorator({ required: false })
+  length?: string;
+
+  @StringDecorator({ required: false })
+  weight?: string;
 
   @ArrayDecorator({ type: AttributeDto })
   attributes: AttributeDto[];

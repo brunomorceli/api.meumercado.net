@@ -120,7 +120,6 @@ export class ProductsService {
       where: { id },
       data: {
         ...updateData,
-        measures: updateData.measures as any,
         attributes: updateData.attributes as any,
         slug,
         updatedAt: new Date(),

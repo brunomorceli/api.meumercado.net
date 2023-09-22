@@ -8,7 +8,6 @@ import {
   UuidDecorator,
 } from '@App/shared';
 import { ProductStatusType, ProductType } from '@prisma/client';
-import { ProductMeasureDto } from './product-measure.dto';
 import { AttributeDto } from './attribute.dto';
 
 export class UpdateProductDto {
@@ -48,8 +47,17 @@ export class UpdateProductDto {
   @ImageArrayDecorator({ required: false })
   pictures?: string[];
 
-  @ArrayDecorator({ type: ProductMeasureDto, required: false })
-  measures?: ProductMeasureDto[];
+  @StringDecorator({ required: false })
+  width?: string;
+
+  @StringDecorator({ required: false })
+  height?: string;
+
+  @StringDecorator({ required: false })
+  length?: string;
+
+  @StringDecorator({ required: false })
+  weight?: string;
 
   @ArrayDecorator({ type: AttributeDto, required: false })
   attributes?: AttributeDto[];

@@ -1,4 +1,4 @@
-import { AttributeDto, ProductMeasureDto } from '@App/modules';
+import { AttributeDto } from '@App/modules';
 import {
   ArrayDecorator,
   BooleanDecorator,
@@ -46,8 +46,17 @@ export class CreateProductDto {
   @ImageArrayDecorator()
   pictures: string[];
 
-  @ArrayDecorator({ type: ProductMeasureDto })
-  measures: ProductMeasureDto[];
+  @StringDecorator({ required: false })
+  width?: string;
+
+  @StringDecorator({ required: false })
+  height?: string;
+
+  @StringDecorator({ required: false })
+  length?: string;
+
+  @StringDecorator({ required: false })
+  weight?: string;
 
   @ArrayDecorator({ type: AttributeDto })
   attributes: AttributeDto[];

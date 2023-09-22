@@ -195,38 +195,4 @@ export class CompaniesService {
     const last: number = Number(raw[0].slug.replace(slug, ''));
     return `${slug}${last + 1}`;
   }
-
-  /*async addUser(
-    owner: User,
-    createCompanyUserDto: CreateCompanyUserDto,
-  ): Promise<CompanyUserEntity> {
-    const { email, firstName, lastName, phoneNumber, cpfCnpj } =
-      createCompanyUserDto;
-    let user = await this.prismaService.user.findFirst({
-      where: { email },
-    });
-
-    if (!!user) {
-      throw new HttpException(
-        'Email já se encontra em uso.',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    await this.prismaService.$transaction(async (prisma) => {
-      const ownerId = owner.id;
-      const userId = randomUUID();
-      user = prisma.user.create({
-        data: {
-          email,
-          id: userId,
-          ownerId,
-          firstName,
-          lastName,
-          phoneNumber,
-          cpfCnpj,
-        },
-      });
-    });
-  }*/
 }

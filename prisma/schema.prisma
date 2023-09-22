@@ -143,7 +143,10 @@ model Product {
   barcode       String?
   status        ProductStatusType @default(ACTIVE)
   categories    String[]          @default([]) @db.Uuid
-  measures      Json
+  width String?
+  height String?
+  length String?
+  weight String?
   attributes    Json
   pictures      String[]
   videos        String[]

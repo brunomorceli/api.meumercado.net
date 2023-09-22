@@ -27,7 +27,7 @@ export class UpdateEntityDto {
   @StringDecorator({ required: false })
   address?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   addressComplement?: string;
 
   @StringDecorator({ required: false })
@@ -39,7 +39,7 @@ export class UpdateEntityDto {
   @UFDecorator({ required: false })
   state?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   addressNumber?: string;
 
   @CepDecorator({ required: false })
