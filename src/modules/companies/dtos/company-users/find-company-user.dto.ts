@@ -5,14 +5,10 @@ import {
   PaginationDto,
   PhoneNumberDecorator,
   StringDecorator,
-  UuidDecorator,
 } from '@App/shared';
 import { RoleType } from '@prisma/client';
 
 export class FindCompanyUserDto extends PaginationDto {
-  @UuidDecorator()
-  id: string;
-
   @StringDecorator({ required: false })
   name?: string;
 

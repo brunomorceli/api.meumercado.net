@@ -8,6 +8,10 @@ import {
   UFDecorator,
 } from '@App/shared';
 import { RoleType } from '@prisma/client';
+import { IsIn, IsOptional, ValidateNested } from 'class-validator';
+import { CreateBillingDataDto } from './create-billing-data.dto';
+import { CreateDeliveryDataDto } from './create-delivery-data.dto';
+import { Type } from 'class-transformer';
 
 export class CreateCompanyUserDto {
   @StringDecorator()
@@ -16,7 +20,10 @@ export class CreateCompanyUserDto {
   @StringDecorator()
   lastName: string;
 
-  @EnumDecorator({ enumType: RoleType })
+  @EnumDecorator({
+    enumType: RoleType,
+    decorators: [IsIn([RoleType.MEMBER, RoleType.SUPPLIER, RoleType.CUSTOMER])],
+  })
   role: RoleType;
 
   @EmailDecorator()
@@ -48,4 +55,13 @@ export class CreateCompanyUserDto {
 
   @CepDecorator({ required: false })
   cep?: string;
+
+  @ValidateNested()
+  @Type(() => CreateBillingDataDto)
+  @IsOptional()
+  billingData?: CreateBillingDataDto;
+
+  @ValidateNested()
+  @Type(() => CreateDeliveryDataDto)
+  deliveryData?: CreateDeliveryDataDto;
 }

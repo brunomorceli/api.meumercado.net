@@ -25,5 +25,8 @@ export const EnumDecorator = (data?: EnumDecoratorProps) => {
     decorators.push(IsOptional());
   }
 
-  return applyDecorators(...decorators);
+  return applyDecorators(
+    ...decorators,
+    ...(data.decorators ? data.decorators : []),
+  );
 };

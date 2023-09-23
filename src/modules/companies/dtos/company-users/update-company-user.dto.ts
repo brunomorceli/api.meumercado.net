@@ -2,13 +2,15 @@ import {
   CepDecorator,
   CpfCnpjDecorator,
   EmailDecorator,
-  EnumDecorator,
   PhoneNumberDecorator,
   StringDecorator,
   UFDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { RoleType } from '@prisma/client';
+import { IsOptional, ValidateNested } from 'class-validator';
+import { BillingDataDto } from './billing-data.dto';
+import { DeliveryDataDto } from './delivery-data.dto';
+import { Type } from 'class-transformer';
 
 export class UpdateCompanyUserDto {
   @UuidDecorator()
@@ -19,9 +21,6 @@ export class UpdateCompanyUserDto {
 
   @StringDecorator({ required: false })
   lastName?: string;
-
-  @EnumDecorator({ enumType: RoleType, required: false })
-  role?: RoleType;
 
   @EmailDecorator({ required: false })
   email?: string;
@@ -52,4 +51,14 @@ export class UpdateCompanyUserDto {
 
   @CepDecorator({ required: false })
   cep?: string;
+
+  @ValidateNested()
+  @Type(() => BillingDataDto)
+  @IsOptional()
+  billingData?: BillingDataDto;
+
+  @ValidateNested()
+  @Type(() => DeliveryDataDto)
+  @IsOptional()
+  deliveryData?: DeliveryDataDto;
 }

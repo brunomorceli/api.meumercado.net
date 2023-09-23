@@ -15,6 +15,8 @@ import {
   User,
   UserStatusType,
 } from '@prisma/client';
+import { IsInstance, IsOptional } from 'class-validator';
+import { BillingDataDto, DeliveryDataDto } from '../dtos';
 
 export class CompanyUserEntity {
   @UuidDecorator()
@@ -74,7 +76,27 @@ export class CompanyUserEntity {
   @DateDecorator({ description: 'Deleting date.', required: false })
   deletedAt?: string;
 
-  constructor(data: User) {
-    Object.keys(data).forEach((key) => (this[key] = data[key]));
+  @IsInstance(BillingDataDto)
+  @IsOptional()
+  billingData?: string;
+
+  @IsInstance(DeliveryDataDto)
+  @IsOptional()
+  deliveryData?: string;
+
+  constructor(data: User | any) {
+    const { billingDatas, deliveryDatas, ...rest } = data;
+
+    Object.keys(rest).forEach((key) => {
+      this[key] = rest[key];
+    });
+
+    if (billingDatas && billingDatas.length !== 0) {
+      this.billingData = billingDatas[0];
+    }
+
+    if (deliveryDatas && deliveryDatas.length !== 0) {
+      this.deliveryData = deliveryDatas[0];
+    }
   }
 }

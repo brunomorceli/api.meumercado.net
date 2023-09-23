@@ -4,7 +4,12 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { CompanyStatusType, RoleType, UserStatusType } from '@prisma/client';
+import {
+  CompanyStatusType,
+  RoleType,
+  User,
+  UserStatusType,
+} from '@prisma/client';
 import { PrismaService, PaginationDto, BucketsService } from '@App/shared';
 import {
   CreateCompanyDto,
@@ -117,7 +122,7 @@ export class CompaniesService {
   }
 
   async find(findCompanyDto: FindCompanyDto): Promise<FindCompanyResultDto> {
-    const where: any = {};
+    const where: any = { deletedAt: null };
     const paginationData = FindCompanyDto.getPaginationParams(
       FindCompanyDto as PaginationDto,
     );
@@ -203,6 +208,10 @@ export class CompaniesService {
   async getUser(companyId: string, userId: string): Promise<CompanyUserEntity> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId, companyId },
+      include: {
+        billingDatas: true,
+        deliveryDatas: true,
+      },
     });
     if (!user) {
       throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
@@ -216,7 +225,7 @@ export class CompaniesService {
     findCompanyUserDto: FindCompanyUserDto,
   ): Promise<FindCompanyUserResultDto> {
     const { name, ...rest } = findCompanyUserDto;
-    const where: any = { ...rest, companyId };
+    const where: any = { ...rest, companyId, deletedAt: null };
 
     if (name) {
       where.slug = { startsWith: Slug(name) };
@@ -230,6 +239,10 @@ export class CompaniesService {
 
     const users = await this.prismaService.user.findMany({
       where,
+      include: {
+        billingDatas: true,
+        deliveryDatas: true,
+      },
       skip: paginationData.skip,
       take: paginationData.limit,
     });
@@ -246,6 +259,7 @@ export class CompaniesService {
     companyId: string,
     createCompanyUserDto: CreateCompanyUserDto,
   ): Promise<CompanyUserEntity> {
+    const { deliveryData, billingData, ...createData } = createCompanyUserDto;
     const company = await this.prismaService.company.findFirst({
       where: { id: companyId },
     });
@@ -254,8 +268,8 @@ export class CompaniesService {
       throw new HttpException('Empresa inválida', HttpStatus.BAD_REQUEST);
     }
 
-    const existing = this.prismaService.user.findUnique({
-      where: { email: createCompanyUserDto.email },
+    const existing = await this.prismaService.user.findUnique({
+      where: { email: createCompanyUserDto.email, companyId: company.id },
     });
 
     if (!!existing) {
@@ -265,35 +279,88 @@ export class CompaniesService {
       );
     }
 
-    const newUser = await this.prismaService.user.create({
-      data: createCompanyUserDto as any,
+    if (createData.role === RoleType.CUSTOMER) {
+      if (!billingData) {
+        throw new HttpException(
+          'Param [billingData] is required.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+      if (!deliveryData) {
+        throw new HttpException(
+          'Param [deliveryData] is required.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
+    const user = await this.prismaService.$transaction(async (prisma) => {
+      let user = await prisma.user.create({
+        data: {
+          ...createData,
+          companyId,
+        },
+      });
+
+      if (createData.role === RoleType.CUSTOMER) {
+        await prisma.billingData.create({
+          data: {
+            ...(billingData as any),
+            userId: user.id,
+          },
+        });
+
+        await prisma.deliveryData.create({
+          data: {
+            ...(deliveryData as any),
+            userId: user.id,
+          },
+        });
+
+        user = await prisma.user.findUnique({
+          where: { id: user.id },
+          include: {
+            billingDatas: true,
+            deliveryDatas: true,
+          },
+        });
+      }
+
+      return user;
     });
 
-    return new CompanyUserEntity(newUser);
+    return new CompanyUserEntity(user);
   }
 
   async updateUser(
-    companyId: string,
+    user: User,
     updateCompanyUserDto: UpdateCompanyUserDto,
   ): Promise<CompanyUserEntity> {
     const { id, email } = updateCompanyUserDto;
-    const updateData: any = { ...updateCompanyUserDto };
+    const { billingData, deliveryData, ...updateData } = updateCompanyUserDto;
 
-    let user = await this.prismaService.user.findUnique({ where: { id } });
-    if (!user) {
+    let userRow = await this.prismaService.user.findUnique({ where: { id } });
+    if (!userRow) {
       throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
     }
 
-    if (user.companyId !== companyId) {
+    if (userRow.companyId !== userRow.companyId) {
       throw new HttpException(
         'O usuário não pertence a empresa informada.',
         HttpStatus.FORBIDDEN,
       );
     }
 
+    if (userRow.role === RoleType.OWNER && userRow.id !== user.id) {
+      throw new HttpException(
+        'Somente um superusuário pode editar um superusuário.',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
     if (email) {
-      const existingEmail = this.prismaService.user.count({
-        where: { id: { not: id }, email },
+      const existingEmail = await this.prismaService.user.count({
+        where: { id: { not: id }, email, companyId: user.companyId },
       });
 
       if (!!existingEmail) {
@@ -306,12 +373,34 @@ export class CompaniesService {
       updateData.email = email;
     }
 
-    user = await this.prismaService.user.update({
-      where: { id },
-      data: updateData,
+    userRow = await this.prismaService.$transaction(async (prisma) => {
+      if (userRow.role === RoleType.CUSTOMER) {
+        if (billingData) {
+          await prisma.billingData.update({
+            where: { id: billingData.id },
+            data: billingData,
+          });
+        }
+
+        if (deliveryData) {
+          await prisma.deliveryData.update({
+            where: { id: deliveryData.id },
+            data: deliveryData,
+          });
+        }
+      }
+
+      return await prisma.user.update({
+        where: { id },
+        data: updateData,
+        include: {
+          billingDatas: true,
+          deliveryDatas: true,
+        },
+      });
     });
 
-    return new CompanyUserEntity(user);
+    return new CompanyUserEntity(userRow);
   }
 
   async deleteUser(companyId: string, userId: string): Promise<void> {

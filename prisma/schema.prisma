@@ -40,9 +40,9 @@ model User {
   companyId         String         @map("company_id") @db.Uuid
   company           Company        @relation(fields: [companyId], references: [id])
   role              RoleType       @default(CUSTOMER)
-  firstName         String
-  lastName          String
-  email             String         @unique
+  firstName         String         @map("first_name")
+  lastName          String         @map("last_name")
+  email             String
   phoneNumber       String?        @map("phone_number")
   cpfCnpj           String?        @map("cpf_cnpj")
   address           String?
@@ -61,22 +61,23 @@ model User {
   billingDatas    BillingData[]
   deliveryDatas   DeliveryData[]
 
+  @@unique([email, companyId])
   @@map("users")
 }
 
 model BillingData {
   id                String  @id @default(uuid()) @db.Uuid
-  email             String
+  email             String?
   phoneNumber       String? @map("phone_number")
-  cpfCnpj           String? @map("cpf_cnpj")
-  address           String?
+  cpfCnpj           String  @map("cpf_cnpj")
+  address           String
   addressComplement String? @map("address_complement")
-  neighborhood      String?
+  neighborhood      String
   addressNumber     String? @map("address_number")
-  city              String?
-  state             String?
-  cep               String?
-  responsible       String?
+  city              String
+  state             String
+  cep               String
+  responsible       String
 
   userId String? @map("user_id") @db.Uuid
   user   User?   @relation(fields: [userId], references: [id])
@@ -90,17 +91,17 @@ model BillingData {
 
 model DeliveryData {
   id                String  @id @default(uuid()) @db.Uuid
-  email             String
+  email             String?
   phoneNumber       String? @map("phone_number")
-  cpfCnpj           String? @map("cpf_cnpj")
-  address           String?
+  cpfCnpj           String  @map("cpf_cnpj")
+  address           String
   addressComplement String? @map("address_complement")
-  neighborhood      String?
+  neighborhood      String
   addressNumber     String? @map("address_number")
-  city              String?
-  state             String?
-  cep               String?
-  responsible       String?
+  city              String
+  state             String
+  cep               String
+  responsible       String
 
   userId String? @map("user_id") @db.Uuid
   user   User?   @relation(fields: [userId], references: [id])

@@ -7,6 +7,7 @@ import {
   Patch,
   Req,
   Delete,
+  Post,
 } from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -25,8 +26,8 @@ import { FindCompanyUserResultDto } from './dtos/company-users/find-company-user
 export class CompaniesUsersController {
   constructor(private readonly companiesService: CompaniesService) {}
 
-  @Patch()
-  post(
+  @Post()
+  create(
     @Req() req: any,
     @Body() data: CreateCompanyUserDto,
   ): Promise<CompanyUserEntity> {
@@ -55,7 +56,7 @@ export class CompaniesUsersController {
   }
 
   @Delete(':id/get')
-  async delete(@Req() req: any, @Param() props: IdParamDto): Promise<void> {
-    await this.companiesService.deleteUser(req.user.company.id, props.id);
+  delete(@Req() req: any, @Param() props: IdParamDto): Promise<void> {
+    return this.companiesService.deleteUser(req.user.company.id, props.id);
   }
 }
