@@ -268,7 +268,7 @@ export class CompaniesService {
       throw new HttpException('Empresa inválida', HttpStatus.BAD_REQUEST);
     }
 
-    const existing = await this.prismaService.user.findUnique({
+    const existing = await this.prismaService.user.findFirst({
       where: { email: createCompanyUserDto.email, companyId: company.id },
     });
 

@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AuthenticationStatusType } from '@prisma/client';
+import { AuthenticationStatusType, RoleType } from '@prisma/client';
 import { PrismaService, MessagesService } from '@App/shared/modules';
 import { GeneralUtils } from '@App/shared';
 import { SignupDto } from './dtos/signup.dto';
@@ -50,6 +50,10 @@ export class UsersService {
     const { email } = signinDto;
 
     const user = await this.prismaService.user.findFirst({
+      where: {
+        email,
+        role: { in: [RoleType.OWNER, RoleType.MEMBER, RoleType.SUPPLIER] },
+      },
       include: { company: true },
     });
 
