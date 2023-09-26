@@ -78,11 +78,11 @@ export class CompanyUserEntity {
 
   @IsInstance(BillingDataDto)
   @IsOptional()
-  billingData?: string;
+  billingData?: BillingDataDto;
 
   @IsInstance(DeliveryDataDto)
   @IsOptional()
-  deliveryData?: string;
+  deliveryData?: DeliveryDataDto;
 
   constructor(data: User | any) {
     const { billingDatas, deliveryDatas, ...rest } = data;

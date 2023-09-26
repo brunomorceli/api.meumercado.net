@@ -224,11 +224,15 @@ export class CompaniesService {
     companyId: string,
     findCompanyUserDto: FindCompanyUserDto,
   ): Promise<FindCompanyUserResultDto> {
-    const { name, ...rest } = findCompanyUserDto;
+    const { name, roles, ...rest } = findCompanyUserDto;
     const where: any = { ...rest, companyId, deletedAt: null };
 
     if (name) {
       where.slug = { startsWith: Slug(name) };
+    }
+
+    if (roles) {
+      where.role = { in: roles };
     }
 
     const paginationData = FindCompanyUserDto.getPaginationParams(
