@@ -62,6 +62,6 @@ export class UpdateCompanyDto {
   @CepDecorator({ required: false })
   cep?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   responsible?: string;
 }
