@@ -5,11 +5,8 @@ export class SignupDto {
   email: string;
 
   @StringDecorator()
-  firstName: string;
+  userName: string;
 
   @StringDecorator()
-  lastName: string;
-
-  @StringDecorator()
-  label: string;
+  companyName: string;
 }

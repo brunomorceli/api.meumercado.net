@@ -38,12 +38,7 @@ export class UsersService {
   }
 
   async signup(signupDto: SignupDto): Promise<void> {
-    await this.companiesService.create({
-      email: signupDto.email,
-      companyName: signupDto.label,
-      userFirstName: signupDto.firstName,
-      userLastName: signupDto.lastName,
-    });
+    await this.companiesService.create(signupDto);
   }
 
   async signin(signinDto: SigninDto): Promise<SigninResponseDto> {
@@ -137,7 +132,7 @@ export class UsersService {
 
     return {
       token: jwt.token,
-      userName: `${user.firstName} ${user.lastName}`,
+      userName: user.name,
       role: user.role,
       companyId: user.company.id,
       tenantId: user.company.tenantId,

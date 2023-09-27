@@ -17,10 +17,7 @@ export class UpdateCompanyUserDto {
   id: string;
 
   @StringDecorator({ required: false })
-  firstName?: string;
-
-  @StringDecorator({ required: false })
-  lastName?: string;
+  name?: string;
 
   @EmailDecorator({ required: false })
   email?: string;

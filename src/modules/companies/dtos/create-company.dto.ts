@@ -5,10 +5,7 @@ export class CreateCompanyDto {
   companyName: string;
 
   @StringDecorator()
-  userFirstName: string;
-
-  @StringDecorator()
-  userLastName: string;
+  userName: string;
 
   @EmailDecorator()
   email: string;

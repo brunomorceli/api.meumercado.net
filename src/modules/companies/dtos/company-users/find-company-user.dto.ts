@@ -1,10 +1,4 @@
-import {
-  CpfCnpjDecorator,
-  EmailDecorator,
-  PaginationDto,
-  PhoneNumberDecorator,
-  StringDecorator,
-} from '@App/shared';
+import { PaginationDto, StringDecorator } from '@App/shared';
 import { RoleType } from '@prisma/client';
 import { Transform } from 'class-transformer';
 import {
@@ -39,12 +33,12 @@ export class FindCompanyUserDto extends PaginationDto {
   @Validate(CustonRoleType, { each: true })
   roles?: RoleType[];
 
-  @EmailDecorator({ required: false })
+  @StringDecorator({ required: false })
   email?: string;
 
-  @CpfCnpjDecorator({ required: false })
+  @StringDecorator({ required: false })
   cpfCnpj?: string;
 
-  @PhoneNumberDecorator({ onlyNumbers: true, required: false })
+  @StringDecorator({ required: false })
   phoneNumber?: string;
 }

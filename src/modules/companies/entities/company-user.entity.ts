@@ -23,10 +23,7 @@ export class CompanyUserEntity {
   id: string;
 
   @StringDecorator()
-  firstName: string;
-
-  @StringDecorator()
-  lastName: string;
+  name: string;
 
   @UuidDecorator()
   companyId: string;

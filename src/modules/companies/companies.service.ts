@@ -34,9 +34,34 @@ export class CompaniesService {
     private readonly prismaService: PrismaService,
   ) {}
 
+  async getTenantId(label: string, prismaHandler?: any): Promise<string> {
+    const prisma = prismaHandler || this.prismaService;
+    const slug = Slug(label);
+
+    const company = await prisma.company.findFirst({
+      where: { tenantId: slug },
+    });
+
+    if (!company) {
+      return slug;
+    }
+
+    const raw: any = await prisma.$queryRaw`
+      select tenant_id
+      from companies
+      where tenant_id ~ '^${slug}[0-9]+$' order by id desc limit 1;
+    `;
+
+    if (!raw || raw.length === 0) {
+      return `${slug}1`;
+    }
+
+    const last: number = Number(raw[0].slug.replace(slug, ''));
+    return `${slug}${last + 1}`;
+  }
+
   async create(createCompanyDto: CreateCompanyDto): Promise<CompanyEntity> {
-    const { companyName, email, userFirstName, userLastName } =
-      createCompanyDto;
+    const { companyName, email, userName } = createCompanyDto;
 
     const company = await this.prismaService.$transaction(async (prisma) => {
       const existing: any = await prisma.company.findFirst({
@@ -64,8 +89,8 @@ export class CompaniesService {
       await prisma.user.create({
         data: {
           companyId: company.id,
-          firstName: userFirstName,
-          lastName: userLastName,
+          name: userName,
+          slug: Slug(userName),
           email,
           role: RoleType.OWNER,
           status: UserStatusType.ACTIVE,
@@ -179,32 +204,6 @@ export class CompaniesService {
     };
   }
 
-  async getTenantId(label: string, prismaHandler?: any): Promise<string> {
-    const prisma = prismaHandler || this.prismaService;
-    const slug = Slug(label);
-
-    const company = await prisma.company.findFirst({
-      where: { tenantId: slug },
-    });
-
-    if (!company) {
-      return slug;
-    }
-
-    const raw: any = await prisma.$queryRaw`
-      select tenant_id
-      from companies
-      where tenant_id ~ '^${slug}[0-9]+$' order by id desc limit 1;
-    `;
-
-    if (!raw || raw.length === 0) {
-      return `${slug}1`;
-    }
-
-    const last: number = Number(raw[0].slug.replace(slug, ''));
-    return `${slug}${last + 1}`;
-  }
-
   async getUser(companyId: string, userId: string): Promise<CompanyUserEntity> {
     const user = await this.prismaService.user.findUnique({
       where: { id: userId, companyId },
@@ -224,11 +223,24 @@ export class CompaniesService {
     companyId: string,
     findCompanyUserDto: FindCompanyUserDto,
   ): Promise<FindCompanyUserResultDto> {
-    const { name, roles, ...rest } = findCompanyUserDto;
+    const { name, email, roles, phoneNumber, cpfCnpj, ...rest } =
+      findCompanyUserDto;
     const where: any = { ...rest, companyId, deletedAt: null };
 
     if (name) {
       where.slug = { startsWith: Slug(name) };
+    }
+
+    if (email) {
+      where.email = { startsWith: email };
+    }
+
+    if (phoneNumber) {
+      where.phoneNumber = { startsWith: phoneNumber };
+    }
+
+    if (cpfCnpj) {
+      where.cpfCnpj = { startsWith: cpfCnpj };
     }
 
     if (roles) {
@@ -303,6 +315,7 @@ export class CompaniesService {
         data: {
           ...createData,
           companyId,
+          slug: Slug(createData.name),
         },
       });
 
@@ -340,8 +353,9 @@ export class CompaniesService {
     user: User,
     updateCompanyUserDto: UpdateCompanyUserDto,
   ): Promise<CompanyUserEntity> {
-    const { id, email } = updateCompanyUserDto;
-    const { billingData, deliveryData, ...updateData } = updateCompanyUserDto;
+    const { id, email, name } = updateCompanyUserDto;
+    const { billingData, deliveryData, ...rest } = updateCompanyUserDto;
+    const updateData: any = rest;
 
     let userRow = await this.prismaService.user.findUnique({ where: { id } });
     if (!userRow) {
@@ -360,6 +374,10 @@ export class CompaniesService {
         'Somente um superusuário pode editar um superusuário.',
         HttpStatus.FORBIDDEN,
       );
+    }
+
+    if (name) {
+      updateData.slug = Slug(name);
     }
 
     if (email) {

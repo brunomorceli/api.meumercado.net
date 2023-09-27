@@ -40,8 +40,8 @@ model User {
   companyId         String         @map("company_id") @db.Uuid
   company           Company        @relation(fields: [companyId], references: [id])
   role              RoleType       @default(CUSTOMER)
-  firstName         String         @map("first_name")
-  lastName          String         @map("last_name")
+  name              String
+  slug              String
   email             String
   phoneNumber       String?        @map("phone_number")
   cpfCnpj           String?        @map("cpf_cnpj")

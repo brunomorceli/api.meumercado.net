@@ -15,10 +15,7 @@ import { Type } from 'class-transformer';
 
 export class CreateCompanyUserDto {
   @StringDecorator()
-  firstName: string;
-
-  @StringDecorator()
-  lastName: string;
+  name: string;
 
   @EnumDecorator({
     enumType: RoleType,
