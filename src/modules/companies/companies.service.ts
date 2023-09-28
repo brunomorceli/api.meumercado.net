@@ -295,7 +295,7 @@ export class CompaniesService {
       );
     }
 
-    if (createData.role === RoleType.CUSTOMER) {
+    /*if (createData.role === RoleType.CUSTOMER) {
       if (!billingData) {
         throw new HttpException(
           'Param [billingData] is required.',
@@ -308,7 +308,7 @@ export class CompaniesService {
           HttpStatus.BAD_REQUEST,
         );
       }
-    }
+    }*/
 
     const user = await this.prismaService.$transaction(async (prisma) => {
       let user = await prisma.user.create({
@@ -319,7 +319,7 @@ export class CompaniesService {
         },
       });
 
-      if (createData.role === RoleType.CUSTOMER) {
+      /*if (createData.role === RoleType.CUSTOMER) {
         await prisma.billingData.create({
           data: {
             ...(billingData as any),
@@ -342,7 +342,7 @@ export class CompaniesService {
           },
         });
       }
-
+      */
       return user;
     });
 

@@ -2,7 +2,6 @@ import {
   CepDecorator,
   CpfCnpjDecorator,
   EmailDecorator,
-  PhoneNumberDecorator,
   StringDecorator,
   UFDecorator,
   UuidDecorator,
@@ -25,7 +24,7 @@ export class UpdateCompanyUserDto {
   @CpfCnpjDecorator({ required: false })
   cpfCnpj?: string;
 
-  @PhoneNumberDecorator({ onlyNumbers: true, required: false })
+  @StringDecorator({ required: false, empty: true })
   phoneNumber?: string;
 
   @StringDecorator({ required: false })

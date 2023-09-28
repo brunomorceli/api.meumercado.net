@@ -3,7 +3,6 @@ import {
   CpfCnpjDecorator,
   EmailDecorator,
   EnumDecorator,
-  PhoneNumberDecorator,
   StringDecorator,
   UFDecorator,
 } from '@App/shared';
@@ -29,7 +28,7 @@ export class CreateCompanyUserDto {
   @CpfCnpjDecorator({ required: false })
   cpfCnpj?: string;
 
-  @PhoneNumberDecorator({ onlyNumbers: true, required: false })
+  @StringDecorator({ required: false, empty: true })
   phoneNumber?: string;
 
   @StringDecorator({ required: false })
