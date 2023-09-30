@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { JwtStrategy } from './jwt.strategy';
+import { AdminAuthStrategy } from './admin-auth.strategy';
 import { PrismaService } from '@App/shared/modules/prisma';
 
 @Module({
@@ -11,6 +11,6 @@ import { PrismaService } from '@App/shared/modules/prisma';
       secret: process.env.JWT_SECRET || 'secret',
     }),
   ],
-  providers: [PrismaService, JwtStrategy],
+  providers: [PrismaService, AdminAuthStrategy],
 })
 export class AuthModule {}

@@ -6,7 +6,7 @@ import {
   MessagesService,
   BucketsModule,
 } from '@App/shared/modules';
-import { AuthModule, JwtStrategy } from '@App/shared/modules/auth';
+import { AuthModule, AdminAuthStrategy } from '@App/shared/modules/auth';
 import { CompaniesService } from '../companies';
 
 @Module({
@@ -15,7 +15,7 @@ import { CompaniesService } from '../companies';
   providers: [
     MessagesService,
     PrismaService,
-    JwtStrategy,
+    AdminAuthStrategy,
     CompaniesService,
     UsersService,
   ],

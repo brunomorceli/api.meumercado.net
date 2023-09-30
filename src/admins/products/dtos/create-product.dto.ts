@@ -1,4 +1,4 @@
-import { AttributeDto } from '@App/modules';
+import { AttributeDto } from '@App/admins';
 import {
   ArrayDecorator,
   BooleanDecorator,

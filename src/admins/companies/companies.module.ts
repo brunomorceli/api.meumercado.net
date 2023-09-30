@@ -5,15 +5,22 @@ import {
   PrismaService,
   MessagesService,
   AuthModule,
-  JwtStrategy,
+  AdminAuthStrategy,
   BucketsModule,
 } from '@App/shared';
 import { CompaniesUsersController } from './companies-users.controller';
+import { OrdersService } from './orders.service';
 
 @Module({
   imports: [BucketsModule, AuthModule],
   controllers: [CompaniesController, CompaniesUsersController],
-  providers: [MessagesService, PrismaService, JwtStrategy, CompaniesService],
-  exports: [CompaniesService],
+  providers: [
+    MessagesService,
+    PrismaService,
+    AdminAuthStrategy,
+    OrdersService,
+    CompaniesService,
+  ],
+  exports: [CompaniesService, OrdersService],
 })
 export class CompaniesModule {}

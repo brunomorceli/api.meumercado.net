@@ -1,3 +1,4 @@
 export * from './auth.module';
 export * from './jwt-auth.guard';
-export * from './jwt.strategy';
+export * from './admin-auth.strategy';
+export * from './customer-auth.strategy';

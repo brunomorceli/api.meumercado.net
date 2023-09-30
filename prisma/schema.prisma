@@ -31,6 +31,7 @@ model Company {
 
   users    User[]
   products Product[]
+  orders   Order[]
 
   @@map("companies")
 }
@@ -60,6 +61,7 @@ model User {
   authentications Authentication[]
   billingDatas    BillingData[]
   deliveryDatas   DeliveryData[]
+  orders          Order[]
 
   @@unique([email, companyId])
   @@map("users")
@@ -158,11 +160,66 @@ model Product {
   updatedAt     DateTime          @updatedAt @map("updated_at")
   deletedAt     DateTime?         @map("deleted_at")
 
+  orderProducts OrderProduct[]
+
   @@index([slug])
   @@index([sku])
   @@index([barcode])
   @@index([categories])
   @@map("products")
+}
+
+model Order {
+  id        String      @id @default(uuid()) @db.Uuid
+  userId    String?     @map("user_id") @db.Uuid
+  user      User?       @relation(fields: [userId], references: [id])
+  companyId String      @map("company_id") @db.Uuid
+  company   Company     @relation(fields: [companyId], references: [id])
+  status    OrderStatus
+  observation String?
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  orderProducts OrderProduct[]
+  payments      Payment[]
+
+  @@map("orders")
+}
+
+model Payment {
+  id             String          @id @default(uuid()) @db.Uuid
+  amount         Int
+  discount       Int?
+  observation String?
+  orderId        String          @map("order_id") @db.Uuid
+  order          Order           @relation(fields: [orderId], references: [id])
+  method         PaymentMethod   @default(CASH)
+  creditCardName String?         @map("credit_card_name")
+  creditCardType CreditCardType? @map("credit_card_type")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  deletedAt      DateTime?       @map("deleted_at")
+
+  @@unique([id, orderId])
+  @@map("payments")
+}
+
+model OrderProduct {
+  id        String    @id @default(uuid()) @db.Uuid
+  name String
+  quantity  Int
+  price     Int
+  total     Int
+  orderId   String    @map("order_id") @db.Uuid
+  order     Order     @relation(fields: [orderId], references: [id])
+  productId String    @map("product_id") @db.Uuid
+  product   Product   @relation(fields: [productId], references: [id])
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("order_products")
 }
 
 enum RoleType {
@@ -197,4 +254,25 @@ enum CompanyStatusType {
 enum ProductType {
   PHYSIC
   DIGITAL
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  DELIVERING
+  DONE
+  CANCELLED_BY_COMPANY
+  CANCELLED_BY_CLIENT
+}
+
+enum PaymentMethod {
+  CASH
+  PIX
+  CREDIT_CARD
+  CREDIT
+}
+
+enum CreditCardType {
+  CREDIT
+  DEBIT
 }

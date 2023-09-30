@@ -9,7 +9,7 @@ import { AuthenticationStatusType } from '@prisma/client';
 import { PrismaService } from '@App/shared/modules/prisma';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class CustomerAuthStrategy extends PassportStrategy(Strategy) {
   constructor(private readonly prismaService: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

@@ -1,7 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { UsersModule, ProductsModule } from '@App/modules';
+import { UsersModule, ProductsModule } from '@App/admins';
 import { BucketsModule, TenantIdMiddleware } from './shared';
-import { CompaniesModule } from './modules/companies';
+import { CompaniesModule } from './admins/companies';
 
 @Module({
   imports: [BucketsModule, UsersModule, CompaniesModule, ProductsModule],
