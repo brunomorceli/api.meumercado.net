@@ -28,7 +28,7 @@ export class GeneralUtils {
 
   public static generateJwt(tokenData: any): JwtResult {
     const createdAt: string = new Date().toISOString();
-    const tokenOptions = { secret: process.env.JWT_SECRET };
+    const tokenOptions = { secret: process.env.ADMIN_JWT_SECRET };
     const payload = { ...tokenData, createdAt };
     const token = this.getJwtService().sign(payload, tokenOptions);
 

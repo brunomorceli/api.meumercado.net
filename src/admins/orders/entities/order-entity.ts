@@ -5,8 +5,8 @@ import {
   StringDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { OrderProductDto } from '../dtos/orders/order-product.dto';
-import { OrderPaymentDto } from '../dtos/orders/order-payment.dto';
+import { OrderProductDto } from '../dtos/order-product.dto';
+import { OrderPaymentDto } from '../dtos/order-payment.dto';
 import { Order, OrderStatus } from '@prisma/client';
 
 export class OrderEntity {

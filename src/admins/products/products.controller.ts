@@ -20,9 +20,9 @@ import {
 import { ProductEntity } from './entities/product.entity';
 import { IdParamDto } from '@App/shared';
 
-@ApiTags('products')
+@ApiTags('admins/products')
 @ApiBearerAuth('access-token')
-@Controller('products')
+@Controller('admins/products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 

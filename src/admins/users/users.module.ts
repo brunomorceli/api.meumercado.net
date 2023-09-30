@@ -1,13 +1,13 @@
 import { Module } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UsersController } from './users.controller';
 import {
   PrismaService,
   MessagesService,
   BucketsModule,
 } from '@App/shared/modules';
-import { AuthModule, AdminAuthStrategy } from '@App/shared/modules/auth';
+import { AuthModule, JwtStrategy } from '@App/admins/auth';
 import { CompaniesService } from '../companies';
+import { UsersController } from './users.controller';
 
 @Module({
   imports: [AuthModule, BucketsModule],
@@ -15,7 +15,7 @@ import { CompaniesService } from '../companies';
   providers: [
     MessagesService,
     PrismaService,
-    AdminAuthStrategy,
+    JwtStrategy,
     CompaniesService,
     UsersService,
   ],

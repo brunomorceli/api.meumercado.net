@@ -19,9 +19,9 @@ import {
 } from './dtos';
 import { OrderEntity } from './entities';
 
-@ApiTags('orders')
+@ApiTags('admins/orders')
 @ApiBearerAuth('access-token')
-@Controller('orders')
+@Controller('admins/orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 

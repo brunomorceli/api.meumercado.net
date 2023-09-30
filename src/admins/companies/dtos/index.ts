@@ -1,4 +1,3 @@
-export * from './company-users';
 export * from './category.dto';
 export * from './create-company.dto';
 export * from './update-company.dto';
@@ -6,4 +5,3 @@ export * from './find-company.dto';
 export * from './find-company-result.dto';
 export * from './check-subodmain';
 export * from './check-subodmain-result.dto';
-export * from './orders';

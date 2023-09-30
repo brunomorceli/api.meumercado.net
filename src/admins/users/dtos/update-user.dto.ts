@@ -6,12 +6,8 @@ import {
   UFDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { IsOptional, ValidateNested } from 'class-validator';
-import { BillingDataDto } from './billing-data.dto';
-import { DeliveryDataDto } from './delivery-data.dto';
-import { Type } from 'class-transformer';
 
-export class UpdateCompanyUserDto {
+export class UpdateUserDto {
   @UuidDecorator()
   id: string;
 
@@ -47,14 +43,4 @@ export class UpdateCompanyUserDto {
 
   @CepDecorator({ required: false })
   cep?: string;
-
-  @ValidateNested()
-  @Type(() => BillingDataDto)
-  @IsOptional()
-  billingData?: BillingDataDto;
-
-  @ValidateNested()
-  @Type(() => DeliveryDataDto)
-  @IsOptional()
-  deliveryData?: DeliveryDataDto;
 }

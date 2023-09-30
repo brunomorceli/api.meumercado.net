@@ -1,10 +1,20 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import { UsersModule, ProductsModule } from '@App/admins';
+import {
+  UsersModule,
+  ProductsModule,
+  AuthModule,
+  CompaniesModule,
+} from '@App/admins';
 import { BucketsModule, TenantIdMiddleware } from './shared';
-import { CompaniesModule } from './admins/companies';
 
 @Module({
-  imports: [BucketsModule, UsersModule, CompaniesModule, ProductsModule],
+  imports: [
+    BucketsModule,
+    AuthModule,
+    UsersModule,
+    CompaniesModule,
+    ProductsModule,
+  ],
   controllers: [],
   providers: [],
 })

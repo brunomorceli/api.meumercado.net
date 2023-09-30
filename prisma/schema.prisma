@@ -59,60 +59,10 @@ model User {
   deletedAt         DateTime?      @map("deleted_at")
 
   authentications Authentication[]
-  billingDatas    BillingData[]
-  deliveryDatas   DeliveryData[]
   orders          Order[]
 
   @@unique([email, companyId])
   @@map("users")
-}
-
-model BillingData {
-  id                String  @id @default(uuid()) @db.Uuid
-  email             String?
-  phoneNumber       String? @map("phone_number")
-  cpfCnpj           String  @map("cpf_cnpj")
-  address           String
-  addressComplement String? @map("address_complement")
-  neighborhood      String
-  addressNumber     String? @map("address_number")
-  city              String
-  state             String
-  cep               String
-  responsible       String
-
-  userId String? @map("user_id") @db.Uuid
-  user   User?   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("billing_data")
-}
-
-model DeliveryData {
-  id                String  @id @default(uuid()) @db.Uuid
-  email             String?
-  phoneNumber       String? @map("phone_number")
-  cpfCnpj           String  @map("cpf_cnpj")
-  address           String
-  addressComplement String? @map("address_complement")
-  neighborhood      String
-  addressNumber     String? @map("address_number")
-  city              String
-  state             String
-  cep               String
-  responsible       String
-
-  userId String? @map("user_id") @db.Uuid
-  user   User?   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("delivery_data")
 }
 
 model Authentication {

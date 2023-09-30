@@ -22,7 +22,7 @@ class CustonRoleType implements ValidatorConstraintInterface {
   }
 }
 
-export class FindCompanyUserDto extends PaginationDto {
+export class FindUserDto extends PaginationDto {
   @StringDecorator({ required: false })
   name?: string;
 

@@ -6,7 +6,7 @@ import {
   SwaggerModule,
 } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { JwtAuthGuard } from './shared/modules/auth';
+import { JwtAuthGuard } from './admins/auth';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {

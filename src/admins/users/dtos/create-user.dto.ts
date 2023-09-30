@@ -7,12 +7,9 @@ import {
   UFDecorator,
 } from '@App/shared';
 import { RoleType } from '@prisma/client';
-import { IsIn, IsOptional, ValidateNested } from 'class-validator';
-import { CreateBillingDataDto } from './create-billing-data.dto';
-import { CreateDeliveryDataDto } from './create-delivery-data.dto';
-import { Type } from 'class-transformer';
+import { IsIn } from 'class-validator';
 
-export class CreateCompanyUserDto {
+export class CreateUserDto {
   @StringDecorator()
   name: string;
 
@@ -51,13 +48,4 @@ export class CreateCompanyUserDto {
 
   @CepDecorator({ required: false })
   cep?: string;
-
-  @ValidateNested()
-  @Type(() => CreateBillingDataDto)
-  @IsOptional()
-  billingData?: CreateBillingDataDto;
-
-  @ValidateNested()
-  @Type(() => CreateDeliveryDataDto)
-  deliveryData?: CreateDeliveryDataDto;
 }

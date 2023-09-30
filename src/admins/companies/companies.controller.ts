@@ -3,11 +3,11 @@ import { CompaniesService } from './companies.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { FindCompanyDto, FindCompanyResultDto, UpdateCompanyDto } from './dtos';
 import { CompanyEntity } from './entities/company.entity';
-import { IdParamDto, Public } from '@App/shared';
+import { IdParamDto } from '@App/shared';
 
-@ApiTags('companies')
+@ApiTags('admins/companies')
 @ApiBearerAuth('access-token')
-@Controller('companies')
+@Controller('admins/companies')
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
@@ -16,13 +16,11 @@ export class CompaniesController {
     return this.companiesService.update(updateCompanyDto);
   }
 
-  @Public()
   @Get(':id/get')
   get(@Param() props: IdParamDto): Promise<CompanyEntity> {
     return this.companiesService.get(props.id);
   }
 
-  @Public()
   @Get('find')
   find(@Query() findCompanyDto: FindCompanyDto): Promise<FindCompanyResultDto> {
     return this.companiesService.find(findCompanyDto);

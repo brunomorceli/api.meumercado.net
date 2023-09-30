@@ -6,7 +6,7 @@ import {
   FindOrderDto,
   FindOrderResultDto,
   UpdateOrderDto,
-} from './dtos/orders';
+} from './dtos';
 import { Order, OrderStatus, User } from '@prisma/client';
 
 @Injectable()
