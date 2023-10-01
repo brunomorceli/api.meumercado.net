@@ -2,7 +2,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { AuthenticationStatusType, RoleType } from '@prisma/client';
 import { PrismaService, MessagesService } from '@App/shared/modules';
 import { GeneralUtils } from '@App/shared';
-import { CompaniesService } from '../companies';
 import {
   ConfirmDto,
   ConfirmResponseDto,
@@ -16,7 +15,6 @@ export class AuthService {
   constructor(
     private readonly prismaService: PrismaService,
     private readonly messageService: MessagesService,
-    private readonly companiesService: CompaniesService,
   ) {}
 
   async getUniqueConfirmationCode(attempts = 10): Promise<string> {
@@ -38,7 +36,7 @@ export class AuthService {
   }
 
   async signup(signupDto: SignupDto): Promise<void> {
-    await this.companiesService.create(signupDto);
+    return;
   }
 
   async signin(signinDto: SigninDto): Promise<SigninResponseDto> {
@@ -121,7 +119,7 @@ export class AuthService {
         userId: authentication.user.id,
         companyId: user.company.id,
       },
-      process.env.ADMIN_JWT_SECRET,
+      process.env.CUSTOMER_JWT_SECRET,
     );
 
     await this.prismaService.authentication.update({

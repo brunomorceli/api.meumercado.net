@@ -8,6 +8,7 @@ import {
   Query,
   Patch,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
@@ -19,9 +20,11 @@ import {
 } from './dtos';
 import { ProductEntity } from './entities/product.entity';
 import { IdParamDto } from '@App/shared';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('admins/products')
 @ApiBearerAuth('access-token')
+@UseGuards(AuthGuard('admins'))
 @Controller('admins/products')
 export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}

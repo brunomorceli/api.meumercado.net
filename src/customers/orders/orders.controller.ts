@@ -1,30 +1,13 @@
-import {
-  Controller,
-  Body,
-  Get,
-  Param,
-  Query,
-  Patch,
-  Req,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Body, Get, Param, Req, Post, Query } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { IdParamDto } from '@App/shared';
-import {
-  CreateOrderDto,
-  FindOrderDto,
-  FindOrderResultDto,
-  UpdateOrderDto,
-} from './dtos';
+import { IdParamDto, PaginationDto } from '@App/shared';
+import { CreateOrderDto, FindOrderResultDto } from './dtos';
 import { OrderEntity } from './entities';
-import { AuthGuard } from '@nestjs/passport';
 
-@ApiTags('admins/orders')
+@ApiTags('customers/orders')
 @ApiBearerAuth('access-token')
-@UseGuards(AuthGuard('admins'))
-@Controller('admins/orders')
+@Controller('customers/orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
@@ -33,21 +16,16 @@ export class OrdersController {
     return this.ordersService.create(req.user.company.id, data);
   }
 
-  @Patch()
-  update(@Req() req: any, @Body() data: UpdateOrderDto): Promise<OrderEntity> {
-    return this.ordersService.update(data);
-  }
-
   @Get(':id/get')
   get(@Req() req: any, @Param() props: IdParamDto): Promise<OrderEntity> {
     return this.ordersService.get(req.user.company.id, props.id);
   }
 
-  @Get('find')
+  @Get('list')
   find(
+    @Query() query: PaginationDto,
     @Req() req: any,
-    @Query() findOrderDto: FindOrderDto,
   ): Promise<FindOrderResultDto> {
-    return this.ordersService.find(req.user.company.id, findOrderDto);
+    return this.ordersService.find(query, req.user.company.id, req.user.id);
   }
 }

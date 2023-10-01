@@ -1,25 +1,10 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
-import {
-  UsersModule,
-  ProductsModule,
-  AuthModule,
-  CompaniesModule,
-} from '@App/admins';
-import { BucketsModule, TenantIdMiddleware } from './shared';
+import { Module } from '@nestjs/common';
+import { AdminsModule } from './admins/admins.module';
+import { CustomersModule } from './customers/customers.module';
 
 @Module({
-  imports: [
-    BucketsModule,
-    AuthModule,
-    UsersModule,
-    CompaniesModule,
-    ProductsModule,
-  ],
+  imports: [AdminsModule, CustomersModule],
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantIdMiddleware).forRoutes('*');
-  }
-}
+export class AppModule {}

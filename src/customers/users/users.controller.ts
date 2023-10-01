@@ -1,27 +1,13 @@
-import {
-  Controller,
-  Body,
-  Get,
-  Param,
-  Query,
-  Patch,
-  Req,
-  Delete,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Body, Get, Param, Patch, Req, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto, FindUserDto, UpdateUserDto } from './dtos';
+import { CreateUserDto, UpdateUserDto } from './dtos';
 import { IdParamDto } from '@App/shared';
 import { UserEntity } from './entities';
-import { FindUserResultDto } from './dtos/find-user-result.dto';
 import { UsersService } from './users.service';
-import { AuthGuard } from '@nestjs/passport';
 
-@ApiTags('admins/users')
+@ApiTags('customers/users')
 @ApiBearerAuth('access-token')
-@UseGuards(AuthGuard('admins'))
-@Controller('admins/users')
+@Controller('customers/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -38,18 +24,5 @@ export class UsersController {
   @Get(':id/get')
   get(@Req() req: any, @Param() params: IdParamDto): Promise<UserEntity> {
     return this.usersService.get(req.user.company.id, params.id);
-  }
-
-  @Get('find')
-  find(
-    @Req() req: any,
-    @Query() query: FindUserDto,
-  ): Promise<FindUserResultDto> {
-    return this.usersService.find(req.user.company.id, query);
-  }
-
-  @Delete(':id/get')
-  delete(@Req() req: any, @Param() params: IdParamDto): Promise<void> {
-    return this.usersService.delete(req.user.company.id, params.id);
   }
 }

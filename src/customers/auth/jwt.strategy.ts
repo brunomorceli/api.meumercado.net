@@ -9,12 +9,12 @@ import { AuthenticationStatusType } from '@prisma/client';
 import { PrismaService } from '@App/shared/modules/prisma';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'admins') {
+export class JwtStrategy extends PassportStrategy(Strategy, 'customers') {
   constructor(private readonly prismaService: PrismaService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.ADMIN_JWT_SECRET || 'secret',
+      secretOrKey: process.env.CUSTOMER_JWT_SECRET || 'secret',
     });
   }
 
