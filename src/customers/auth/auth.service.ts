@@ -1,5 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AuthenticationStatusType, RoleType } from '@prisma/client';
+import {
+  AuthenticationStatusType,
+  RoleType,
+  UserStatusType,
+} from '@prisma/client';
 import { PrismaService, MessagesService } from '@App/shared/modules';
 import { GeneralUtils } from '@App/shared';
 import {
@@ -9,6 +13,7 @@ import {
   SigninResponseDto,
   SignupDto,
 } from './dtos';
+import * as Slug from 'slug';
 
 @Injectable()
 export class AuthService {
@@ -35,22 +40,59 @@ export class AuthService {
     );
   }
 
-  async signup(signupDto: SignupDto): Promise<void> {
-    return;
+  async signup(tenantId: string, signupDto: SignupDto): Promise<void> {
+    const company = await this.prismaService.company.findFirst({
+      where: { tenantId },
+    });
+
+    if (!company) {
+      throw new HttpException('Subdomínio inválido', HttpStatus.BAD_REQUEST);
+    }
+
+    const existing = await this.prismaService.user.findFirst({
+      where: { email: signupDto.email, companyId: company.id },
+    });
+
+    if (!!existing) {
+      throw new HttpException(
+        'O email já se encontra em uso.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    await this.prismaService.user.create({
+      data: {
+        ...signupDto,
+        slug: Slug(signupDto.name),
+        role: RoleType.CUSTOMER,
+        status: UserStatusType.ACTIVE,
+        companyId: company.id,
+      },
+    });
   }
 
-  async signin(signinDto: SigninDto): Promise<SigninResponseDto> {
+  async signin(
+    tenantId: string,
+    signinDto: SigninDto,
+  ): Promise<SigninResponseDto> {
     const { email } = signinDto;
+
+    const company = await this.prismaService.company.findFirst({
+      where: { tenantId },
+    });
+
+    if (!company) {
+      throw new HttpException('Subdomínio inválido', HttpStatus.BAD_REQUEST);
+    }
 
     const user = await this.prismaService.user.findFirst({
       where: {
         email,
         role: { in: [RoleType.OWNER, RoleType.MEMBER, RoleType.SUPPLIER] },
       },
-      include: { company: true },
     });
 
-    if (!user || !user.company) {
+    if (!user) {
       throw new HttpException(null, HttpStatus.NO_CONTENT);
     }
 
@@ -86,7 +128,7 @@ export class AuthService {
     });
 
     return Promise.resolve({
-      tenantId: user.company.tenantId,
+      tenantId: company.tenantId,
       authId: auth.id,
     });
   }
@@ -117,7 +159,7 @@ export class AuthService {
     const jwt = GeneralUtils.generateJwt(
       {
         userId: authentication.user.id,
-        companyId: user.company.id,
+        tenantId: authentication.user.company.tenantId,
       },
       process.env.CUSTOMER_JWT_SECRET,
     );

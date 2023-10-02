@@ -1,6 +1,6 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import {
   ConfirmDto,
   ConfirmResponseDto,
@@ -11,29 +11,31 @@ import {
 import { Public } from '@App/customers/auth/jwt-auth.guard';
 
 @ApiTags('customers/auth')
-@ApiBearerAuth('access-token')
 @Controller('customers/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('signin')
   @Public()
-  signin(@Body() signinDto: SigninDto): Promise<SigninResponseDto> {
-    return this.authService.signin(signinDto);
+  signin(
+    @Res({ passthrough: true }) res,
+    @Body() signinDto: SigninDto,
+  ): Promise<SigninResponseDto> {
+    return this.authService.signin(res.locals.tenantId, signinDto);
   }
 
   @Post('signup')
   @Public()
-  signup(@Body() signinDto: SignupDto): Promise<void> {
-    return this.authService.signup(signinDto);
+  signup(
+    @Res({ passthrough: true }) res,
+    @Body() signinDto: SignupDto,
+  ): Promise<void> {
+    return this.authService.signup(res.locals.tenantId, signinDto);
   }
 
   @Post('confirm/')
   @Public()
-  confirm(
-    //@Res({ passthrough: true }) res,
-    @Body() confirmDto: ConfirmDto,
-  ): Promise<ConfirmResponseDto> {
+  confirm(@Body() confirmDto: ConfirmDto): Promise<ConfirmResponseDto> {
     return this.authService.confirm(confirmDto);
   }
 }

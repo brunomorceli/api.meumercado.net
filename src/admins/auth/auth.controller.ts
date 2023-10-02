@@ -1,6 +1,6 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import {
   ConfirmDto,
   ConfirmResponseDto,
@@ -11,7 +11,6 @@ import {
 import { Public } from '@App/admins/auth/jwt-auth.guard';
 
 @ApiTags('admins/auth')
-@ApiBearerAuth('access-token')
 @Controller('admins/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -30,10 +29,7 @@ export class AuthController {
 
   @Post('confirm/')
   @Public()
-  confirm(
-    //@Res({ passthrough: true }) res,
-    @Body() confirmDto: ConfirmDto,
-  ): Promise<ConfirmResponseDto> {
+  confirm(@Body() confirmDto: ConfirmDto): Promise<ConfirmResponseDto> {
     return this.authService.confirm(confirmDto);
   }
 }

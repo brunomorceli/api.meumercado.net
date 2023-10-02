@@ -9,12 +9,12 @@ export class ProductsService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async find(
-    companyId: string,
+    tenantId: string,
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
     const { label, categoryId } = findProductDto;
     const where: any = {
-      companyId: findProductDto.companyId || companyId,
+      tenantId,
       deletedAt: null,
     };
     const paginationData = FindProductDto.getPaginationParams(findProductDto);
