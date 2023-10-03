@@ -24,7 +24,7 @@ export class OrdersController {
 
   @Post()
   create(@Req() req: any, @Body() data: CreateOrderDto): Promise<OrderEntity> {
-    return this.ordersService.create(req.user.company.id, data);
+    return this.ordersService.create(req.user, data);
   }
 
   @Get(':id/get')

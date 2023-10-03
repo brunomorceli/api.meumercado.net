@@ -17,7 +17,7 @@ export class UpdateProductDto {
   @StringDecorator({ required: false })
   label?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   description?: string;
 
   @BooleanDecorator({ required: false })
@@ -47,16 +47,16 @@ export class UpdateProductDto {
   @ImageArrayDecorator({ required: false })
   pictures?: string[];
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   width?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   height?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   length?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   weight?: string;
 
   @ArrayDecorator({ type: AttributeDto, required: false })

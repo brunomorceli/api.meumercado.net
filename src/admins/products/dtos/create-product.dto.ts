@@ -16,7 +16,7 @@ export class CreateProductDto {
   @StringDecorator()
   label: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   description?: string;
 
   @BooleanDecorator()
@@ -46,16 +46,16 @@ export class CreateProductDto {
   @ImageArrayDecorator()
   pictures: string[];
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   width?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   height?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   length?: string;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   weight?: string;
 
   @ArrayDecorator({ type: AttributeDto })

@@ -13,10 +13,16 @@ export class ProductsService {
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
     const { label, categoryId } = findProductDto;
-    const where: any = {
-      tenantId,
-      deletedAt: null,
-    };
+
+    const company = await this.prismaService.company.findUnique({
+      where: { tenantId },
+    });
+
+    if (!company) {
+      throw new BadRequestException('Registro inválido.');
+    }
+
+    const where: any = { companyId: company.id, deletedAt: null };
     const paginationData = FindProductDto.getPaginationParams(findProductDto);
 
     if (label) {

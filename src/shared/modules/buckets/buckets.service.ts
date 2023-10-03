@@ -22,7 +22,7 @@ export class BucketsService {
       Body: Buffer.from(blob.split(';base64,').pop(), 'base64'),
       ACL: 'public-read',
       ContentEncoding: 'base64',
-      ContentType: 'image/jpeg',
+      ContentType: 'image/png',
       Bucket: bucket,
     };
 
