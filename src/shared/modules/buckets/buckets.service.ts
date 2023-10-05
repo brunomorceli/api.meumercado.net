@@ -24,6 +24,8 @@ export class BucketsService {
       ContentEncoding: 'base64',
       ContentType: 'image/png',
       Bucket: bucket,
+      CacheControl: 'no-cache',
+      Expires: new Date(),
     };
 
     try {

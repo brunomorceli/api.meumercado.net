@@ -26,6 +26,9 @@ export class UpdateProductDto {
   @NumberDecorator({ min: 1, required: false })
   quantity?: number;
 
+  @StringDecorator({ required: false, empty: true })
+  quantitySulfix?: string;
+
   @BooleanDecorator()
   showPrice: boolean;
 

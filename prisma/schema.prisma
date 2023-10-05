@@ -89,6 +89,7 @@ model Product {
   slug          String
   unlimited     Boolean           @default(false)
   quantity      Int?
+  quantitySulfix String? @map("quantity_sulfix")
   showPrice     Boolean           @default(true) @map("show_price")
   price         Int
   discountPrice Int?              @map("discount_price")

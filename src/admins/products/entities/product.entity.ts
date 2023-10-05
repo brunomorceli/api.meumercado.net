@@ -30,6 +30,9 @@ export class ProductEntity {
   @NumberDecorator({ min: 1 })
   quantity: number;
 
+  @StringDecorator({ required: false, empty: true })
+  quantitySulfix?: string;
+
   @BooleanDecorator()
   showPrice: boolean;
 

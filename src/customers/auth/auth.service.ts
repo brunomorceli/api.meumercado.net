@@ -86,14 +86,15 @@ export class AuthService {
     }
 
     const user = await this.prismaService.user.findFirst({
-      where: {
-        email,
-        role: { in: [RoleType.OWNER, RoleType.MEMBER, RoleType.SUPPLIER] },
-      },
+      where: { email },
     });
 
     if (!user) {
       throw new HttpException(null, HttpStatus.NO_CONTENT);
+    }
+
+    if (user.role !== RoleType.CUSTOMER) {
+      throw new HttpException('Usuário inválido.', HttpStatus.BAD_REQUEST);
     }
 
     const auth = await this.prismaService.$transaction(async (prisma) => {
