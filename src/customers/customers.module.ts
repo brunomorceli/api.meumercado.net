@@ -6,6 +6,7 @@ import {
   CompaniesModule,
 } from '@App/customers';
 import { BucketsModule, TenantIdMiddleware } from '../shared';
+import { OrdersModule } from '@App/customers';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { BucketsModule, TenantIdMiddleware } from '../shared';
     UsersModule,
     CompaniesModule,
     ProductsModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [],

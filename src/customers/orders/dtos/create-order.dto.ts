@@ -6,6 +6,7 @@ export class CreateOrderDto {
   @ArrayDecorator({ type: CreateOrderProductDto })
   products: CreateOrderProductDto[];
 
+  @ArrayDecorator({ type: CreateOrderPaymentDto })
   payments: CreateOrderPaymentDto[];
 
   @StringDecorator({ required: false })
