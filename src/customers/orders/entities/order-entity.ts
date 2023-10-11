@@ -33,6 +33,27 @@ export class OrderEntity {
   @DateDecorator({ description: 'Creating date.' })
   createdAt: string;
 
+  @DateDecorator({ required: false })
+  pendingAt?: string;
+
+  @DateDecorator({ required: false })
+  preparingAt?: string;
+
+  @DateDecorator({ required: false })
+  shippingAt?: string;
+
+  @DateDecorator({ required: false })
+  deliveringAt?: string;
+
+  @DateDecorator({ required: false })
+  doneAt?: string;
+
+  @DateDecorator({ required: false })
+  canceledByCompanyAt?: string;
+
+  @DateDecorator({ required: false })
+  canceledByClientAt?: string;
+
   @DateDecorator({ description: 'Deleting date.', required: false })
   deletedAt?: string;
 

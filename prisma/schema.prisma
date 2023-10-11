@@ -168,6 +168,13 @@ model OrderProduct {
   product   Product   @relation(fields: [productId], references: [id])
   createdAt DateTime  @default(now()) @map("created_at")
   updatedAt DateTime  @updatedAt @map("updated_at")
+  pendingAt DateTime? @map("pending_at")
+  preparingAt DateTime? @map("preparing_at")
+  shippingAt DateTime? @map("shipping_at")
+  deliveringAt DateTime? @map("delivering_at")
+  doneAt DateTime? @map("done_at")
+  canceledByCompanyAt DateTime? @map("canceled_by_company_at")
+  canceledByClientAt DateTime? @map("canceled_by_client_at")
   deletedAt DateTime? @map("deleted_at")
 
   @@map("order_products")
@@ -210,10 +217,11 @@ enum ProductType {
 enum OrderStatus {
   PENDING
   PREPARING
+  SHIPPING
   DELIVERING
   DONE
-  CANCELLED_BY_COMPANY
-  CANCELLED_BY_CLIENT
+  CANCELED_BY_COMPANY
+  CANCELED_BY_CLIENT
 }
 
 enum PaymentMethod {

@@ -13,6 +13,25 @@ import { Order, OrderStatus, User } from '@prisma/client';
 export class OrdersService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  private getDateByStatus(status: OrderStatus): any {
+    switch (status) {
+      case OrderStatus.PENDING:
+        return { pendingAt: new Date() };
+      case OrderStatus.PREPARING:
+        return { preparingAt: new Date() };
+      case OrderStatus.SHIPPING:
+        return { shippingAt: new Date() };
+      case OrderStatus.DELIVERING:
+        return { deliveringAt: new Date() };
+      case OrderStatus.DONE:
+        return { doneAt: new Date() };
+      case OrderStatus.CANCELED_BY_COMPANY:
+        return { canceledByCompanyAt: new Date() };
+      case OrderStatus.CANCELED_BY_CLIENT:
+        return { canceledByClientAt: new Date() };
+    }
+  }
+
   async create(user: User, data: CreateOrderDto): Promise<OrderEntity> {
     const order: Order = await this.prismaService.$transaction(
       async (prisma) => {
@@ -22,6 +41,7 @@ export class OrdersService {
             userId: user.id,
             observation: data.observation,
             status: OrderStatus.PENDING,
+            ...this.getDateByStatus(OrderStatus.PENDING),
           },
         });
 
@@ -108,13 +128,21 @@ export class OrdersService {
   }
 
   async update(data: UpdateOrderDto): Promise<OrderEntity> {
-    const { id, ...updateData } = data;
+    const { id, ...rest } = data;
+    let updateData: any = { ...rest };
     let order: any = await this.prismaService.order.findFirst({
       where: { id },
     });
 
     if (!order) {
       throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
+    }
+
+    if (updateData.status) {
+      updateData = {
+        ...updateData,
+        ...this.getDateByStatus(updateData.status),
+      };
     }
 
     order = await this.prismaService.order.update({
