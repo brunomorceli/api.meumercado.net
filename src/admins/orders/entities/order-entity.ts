@@ -8,6 +8,7 @@ import {
 import { OrderProductDto } from '../dtos/order-product.dto';
 import { OrderPaymentDto } from '../dtos/order-payment.dto';
 import { Order, OrderStatus } from '@prisma/client';
+import { OrderLogDto } from '@App/customers/orders/dtos/order-log.dto';
 
 export class OrderEntity {
   @UuidDecorator()
@@ -30,29 +31,11 @@ export class OrderEntity {
 
   payments: OrderPaymentDto[];
 
+  @ArrayDecorator({ type: OrderLogDto })
+  orderLogs: OrderLogDto[];
+
   @DateDecorator({ description: 'Creating date.' })
   createdAt: string;
-
-  @DateDecorator({ required: false })
-  pendingAt?: string;
-
-  @DateDecorator({ required: false })
-  preparingAt?: string;
-
-  @DateDecorator({ required: false })
-  shippingAt?: string;
-
-  @DateDecorator({ required: false })
-  deliveringAt?: string;
-
-  @DateDecorator({ required: false })
-  doneAt?: string;
-
-  @DateDecorator({ required: false })
-  canceledByCompanyAt?: string;
-
-  @DateDecorator({ required: false })
-  canceledByClientAt?: string;
 
   @DateDecorator({ description: 'Deleting date.', required: false })
   deletedAt?: string;

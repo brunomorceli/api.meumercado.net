@@ -4,7 +4,7 @@ import { CreateOrderPaymentDto } from './create-order-payment.dto';
 
 export class CreateOrderDto {
   @ArrayDecorator({ type: CreateOrderProductDto })
-  products: CreateOrderProductDto[];
+  orderProducts: CreateOrderProductDto[];
 
   @ArrayDecorator({ type: CreateOrderPaymentDto })
   payments: CreateOrderPaymentDto[];

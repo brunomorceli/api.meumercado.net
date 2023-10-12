@@ -7,11 +7,12 @@ import {
   Post,
   Query,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { IdParamDto, PaginationDto } from '@App/shared';
-import { CreateOrderDto, FindOrderResultDto } from './dtos';
+import { CancelOrderDto, CreateOrderDto, FindOrderResultDto } from './dtos';
 import { OrderEntity } from './entities';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -38,5 +39,14 @@ export class OrdersController {
     @Req() req: any,
   ): Promise<FindOrderResultDto> {
     return this.ordersService.find(query, req.user.company.id, req.user.id);
+  }
+
+  @Put(':id/cancel')
+  cancel(
+    @Req() req: any,
+    @Param() props: IdParamDto,
+    @Body() data: CancelOrderDto,
+  ): Promise<OrderEntity> {
+    return this.ordersService.cancel(req.user, data.observation, props.id);
   }
 }

@@ -1,83 +1,20 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { PaginationDto, PrismaService } from '@App/shared';
 import { OrderEntity } from './entities';
-import {
-  CreateOrderDto,
-  FindOrderDto,
-  FindOrderResultDto,
-  UpdateOrderDto,
-} from './dtos';
-import { Order, OrderStatus, User } from '@prisma/client';
+import { FindOrderDto, FindOrderResultDto, UpdateOrderDto } from './dtos';
+import { OrderStatus, User } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
   constructor(private readonly prismaService: PrismaService) {}
 
-  private getDateByStatus(status: OrderStatus): any {
-    switch (status) {
-      case OrderStatus.PENDING:
-        return { pendingAt: new Date() };
-      case OrderStatus.PREPARING:
-        return { preparingAt: new Date() };
-      case OrderStatus.SHIPPING:
-        return { shippingAt: new Date() };
-      case OrderStatus.DELIVERING:
-        return { deliveringAt: new Date() };
-      case OrderStatus.DONE:
-        return { doneAt: new Date() };
-      case OrderStatus.CANCELED_BY_COMPANY:
-        return { canceledByCompanyAt: new Date() };
-      case OrderStatus.CANCELED_BY_CLIENT:
-        return { canceledByClientAt: new Date() };
-    }
-  }
-
-  async create(user: User, data: CreateOrderDto): Promise<OrderEntity> {
-    const order: Order = await this.prismaService.$transaction(
-      async (prisma) => {
-        const order = await prisma.order.create({
-          data: {
-            companyId: user.companyId,
-            userId: user.id,
-            observation: data.observation,
-            status: OrderStatus.PENDING,
-            ...this.getDateByStatus(OrderStatus.PENDING),
-          },
-        });
-
-        await prisma.orderProduct.createMany({
-          data: data.products.map((product) => ({
-            ...product,
-            orderId: order.id,
-          })),
-        });
-
-        await prisma.payment.createMany({
-          data: data.payments.map((payment) => ({
-            ...payment,
-            orderId: order.id,
-          })),
-        });
-
-        return await prisma.order.findUnique({
-          where: { id: order.id },
-          include: {
-            orderProducts: true,
-            payments: true,
-          },
-        });
-      },
-    );
-
-    return new OrderEntity(order);
-  }
-
   async get(companyId: string, id: string): Promise<OrderEntity> {
     const order = await this.prismaService.order.findUnique({
       where: { companyId, id },
       include: {
-        orderProducts: true,
+        orderProducts: { include: { product: true } },
         payments: true,
+        orderLogs: { orderBy: { createdAt: 'asc' } },
       },
     });
 
@@ -85,7 +22,7 @@ export class OrdersService {
       throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
     }
 
-    return new OrderEntity(order);
+    return new OrderEntity(order as any);
   }
 
   async find(
@@ -112,8 +49,9 @@ export class OrdersService {
     const users = await this.prismaService.order.findMany({
       where,
       include: {
-        orderProducts: true,
+        orderProducts: { include: { product: true } },
         payments: true,
+        orderLogs: { orderBy: { createdAt: 'asc' } },
       },
       skip: paginationData.skip,
       take: paginationData.limit,
@@ -127,33 +65,50 @@ export class OrdersService {
     };
   }
 
-  async update(data: UpdateOrderDto): Promise<OrderEntity> {
-    const { id, ...rest } = data;
-    let updateData: any = { ...rest };
-    let order: any = await this.prismaService.order.findFirst({
+  async update(user: User, data: UpdateOrderDto): Promise<OrderEntity> {
+    const { id, ...updateData } = data;
+    const existing: any = await this.prismaService.order.findFirst({
       where: { id },
     });
 
-    if (!order) {
+    if (!existing) {
       throw new HttpException('Registro inválido', HttpStatus.BAD_REQUEST);
     }
 
-    if (updateData.status) {
-      updateData = {
-        ...updateData,
-        ...this.getDateByStatus(updateData.status),
-      };
+    const statusKeys = Object.keys(OrderStatus);
+    if (
+      updateData.status &&
+      statusKeys.indexOf(data.status) <= statusKeys.indexOf(existing.status)
+    ) {
+      throw new HttpException(
+        'O status deve ser uma progressão do anterior',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
-    order = await this.prismaService.order.update({
-      where: { id },
-      data: updateData,
-      select: {
-        orderProducts: true,
-        payments: true,
-      },
+    const order = await this.prismaService.$transaction(async (prisma) => {
+      await prisma.orderLog.create({
+        data: {
+          orderId: id,
+          userId: user.id,
+          status: updateData.status,
+          observation: updateData.observation,
+        },
+      });
+
+      const order = await prisma.order.update({
+        where: { id },
+        data: updateData,
+        include: {
+          orderProducts: { include: { product: true } },
+          payments: true,
+          orderLogs: { orderBy: { createdAt: 'asc' } },
+        },
+      });
+
+      return order;
     });
 
-    return new OrderEntity(order);
+    return new OrderEntity(order as any);
   }
 }

@@ -6,18 +6,12 @@ import {
   Query,
   Patch,
   Req,
-  Post,
   UseGuards,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { IdParamDto } from '@App/shared';
-import {
-  CreateOrderDto,
-  FindOrderDto,
-  FindOrderResultDto,
-  UpdateOrderDto,
-} from './dtos';
+import { FindOrderDto, FindOrderResultDto, UpdateOrderDto } from './dtos';
 import { OrderEntity } from './entities';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -28,14 +22,9 @@ import { AuthGuard } from '@nestjs/passport';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @Post()
-  create(@Req() req: any, @Body() data: CreateOrderDto): Promise<OrderEntity> {
-    return this.ordersService.create(req.user.company.id, data);
-  }
-
   @Patch()
   update(@Req() req: any, @Body() data: UpdateOrderDto): Promise<OrderEntity> {
-    return this.ordersService.update(data);
+    return this.ordersService.update(req.user, data);
   }
 
   @Get(':id/get')

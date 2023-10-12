@@ -4,6 +4,7 @@ import {
   ProductsModule,
   AuthModule,
   CompaniesModule,
+  OrdersModule,
 } from '@App/admins';
 import { BucketsModule, TenantIdMiddleware } from '../shared';
 
@@ -14,6 +15,7 @@ import { BucketsModule, TenantIdMiddleware } from '../shared';
     UsersModule,
     CompaniesModule,
     ProductsModule,
+    OrdersModule,
   ],
   controllers: [],
   providers: [],
