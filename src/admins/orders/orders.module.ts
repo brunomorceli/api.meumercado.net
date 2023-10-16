@@ -1,13 +1,17 @@
 import { Module } from '@nestjs/common';
-import { PrismaService } from '@App/shared';
+import {
+  NotificationsModule,
+  NotificationsService,
+  PrismaService,
+} from '@App/shared';
 import { OrdersService } from './orders.service';
 import { OrdersController } from './orders.controller';
 import { AuthModule, JwtStrategy } from '@App/admins/auth';
 
 @Module({
-  imports: [AuthModule],
+  imports: [NotificationsModule, AuthModule],
   controllers: [OrdersController],
-  providers: [PrismaService, JwtStrategy, OrdersService],
+  providers: [PrismaService, JwtStrategy, NotificationsService, OrdersService],
   exports: [OrdersService],
 })
 export class OrdersModule {}

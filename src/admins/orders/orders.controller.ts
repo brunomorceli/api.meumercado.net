@@ -22,9 +22,13 @@ import { AuthGuard } from '@nestjs/passport';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  @Patch()
-  update(@Req() req: any, @Body() data: UpdateOrderDto): Promise<OrderEntity> {
-    return this.ordersService.update(req.user, data);
+  @Patch(':id')
+  update(
+    @Req() req: any,
+    @Param() props: IdParamDto,
+    @Body() data: UpdateOrderDto,
+  ): Promise<OrderEntity> {
+    return this.ordersService.update(req.user, props.id, data);
   }
 
   @Get(':id/get')

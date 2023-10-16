@@ -29,9 +29,10 @@ model Company {
   updatedAt         DateTime          @updatedAt @map("updated_at")
   deletedAt         DateTime?         @map("deleted_at")
 
-  users    User[]
-  products Product[]
-  orders   Order[]
+  users         User[]
+  products      Product[]
+  orders        Order[]
+  notifications Notification[]
 
   @@map("companies")
 }
@@ -61,6 +62,7 @@ model User {
   authentications Authentication[]
   orders          Order[]
   orderLogs       OrderLog[]
+  notifications   Notification[]
 
   @@unique([email, companyId])
   @@map("users")
@@ -122,20 +124,21 @@ model Product {
 }
 
 model Order {
-  id                  String      @id @default(uuid()) @db.Uuid
-  userId              String?     @map("user_id") @db.Uuid
-  user                User?       @relation(fields: [userId], references: [id])
-  companyId           String      @map("company_id") @db.Uuid
-  company             Company     @relation(fields: [companyId], references: [id])
-  status              OrderStatus
-  observation         String?
-  createdAt           DateTime    @default(now()) @map("created_at")
-  updatedAt           DateTime    @updatedAt @map("updated_at")
-  deletedAt           DateTime?   @map("deleted_at")
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String?     @map("user_id") @db.Uuid
+  user        User?       @relation(fields: [userId], references: [id])
+  companyId   String      @map("company_id") @db.Uuid
+  company     Company     @relation(fields: [companyId], references: [id])
+  status      OrderStatus
+  observation String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  deletedAt   DateTime?   @map("deleted_at")
 
   orderProducts OrderProduct[]
   payments      Payment[]
   orderLogs     OrderLog[]
+  notifications Notification[]
 
   @@map("orders")
 }
@@ -186,6 +189,22 @@ model OrderProduct {
   deletedAt DateTime? @map("deleted_at")
 
   @@map("order_products")
+}
+
+model Notification {
+  id        Int                @id @default(autoincrement())
+  label     String
+  target    NotificationTarget @default(CLIENT)
+  type      NotificationType   @default(UPDATE_ORDER)
+  userId    String?            @map("user_id") @db.Uuid
+  user      User?              @relation(fields: [userId], references: [id])
+  orderId   String?            @map("order_id") @db.Uuid
+  order     Order?             @relation(fields: [orderId], references: [id])
+  companyId String             @map("company_id") @db.Uuid
+  company   Company            @relation(fields: [companyId], references: [id])
+  createdAt DateTime           @default(now()) @map("created_at")
+
+  @@map("notifications")
 }
 
 enum RoleType {
@@ -242,4 +261,17 @@ enum PaymentMethod {
 enum CreditCardType {
   CREDIT
   DEBIT
+}
+
+enum NotificationTarget {
+  COMPANY
+  CLIENT
+}
+
+enum NotificationType {
+  NEW_ORDER
+  UPDATE_ORDER
+  CANCEL_ORDER
+  DELIVERY_ORDER
+  MESSAGE
 }

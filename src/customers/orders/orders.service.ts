@@ -1,12 +1,24 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PaginationDto, PrismaService } from '@App/shared';
+import {
+  NotificationsService,
+  PaginationDto,
+  PrismaService,
+} from '@App/shared';
 import { OrderEntity } from './entities';
 import { CreateOrderDto, FindOrderResultDto } from './dtos';
-import { OrderStatus, User } from '@prisma/client';
+import {
+  NotificationTarget,
+  NotificationType,
+  OrderStatus,
+  User,
+} from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly notificationService: NotificationsService,
+  ) {}
 
   async create(user: User, data: CreateOrderDto): Promise<OrderEntity> {
     const order = await this.prismaService.$transaction(async (prisma) => {
@@ -41,6 +53,17 @@ export class OrdersService {
           status,
         },
       });
+
+      await this.notificationService.create(
+        order.companyId,
+        {
+          orderId: order.id,
+          label: `Nova compra de "${user.name}".`,
+          target: NotificationTarget.COMPANY,
+          type: NotificationType.NEW_ORDER,
+        },
+        prisma,
+      );
 
       return await prisma.order.findUnique({
         where: { id: order.id },

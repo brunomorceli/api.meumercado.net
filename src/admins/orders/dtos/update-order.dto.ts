@@ -1,13 +1,10 @@
-import { EnumDecorator, StringDecorator, UuidDecorator } from '@App/shared';
+import { EnumDecorator, StringDecorator } from '@App/shared';
 import { OrderStatus } from '@prisma/client';
 
 export class UpdateOrderDto {
-  @UuidDecorator()
-  id: string;
-
   @EnumDecorator({ enumType: OrderStatus })
   status: OrderStatus;
 
-  @StringDecorator({ required: false })
+  @StringDecorator({ required: false, empty: true })
   observation?: string;
 }

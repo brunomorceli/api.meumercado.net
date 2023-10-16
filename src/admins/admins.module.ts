@@ -6,10 +6,15 @@ import {
   CompaniesModule,
   OrdersModule,
 } from '@App/admins';
-import { BucketsModule, TenantIdMiddleware } from '../shared';
+import {
+  BucketsModule,
+  NotificationsModule,
+  TenantIdMiddleware,
+} from '../shared';
 
 @Module({
   imports: [
+    NotificationsModule,
     BucketsModule,
     AuthModule,
     UsersModule,

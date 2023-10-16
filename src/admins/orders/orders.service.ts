@@ -1,13 +1,25 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { PaginationDto, PrismaService } from '@App/shared';
+import {
+  NotificationsService,
+  PaginationDto,
+  PrismaService,
+} from '@App/shared';
 import { FindOrderEntity, OrderEntity } from './entities';
 import { FindOrderDto, FindOrderResultDto, UpdateOrderDto } from './dtos';
-import { OrderStatus, User } from '@prisma/client';
+import {
+  NotificationTarget,
+  NotificationType,
+  OrderStatus,
+  User,
+} from '@prisma/client';
 import * as Slug from 'slug';
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prismaService: PrismaService) {}
+  constructor(
+    private readonly prismaService: PrismaService,
+    private readonly notificationService: NotificationsService,
+  ) {}
 
   async get(companyId: string, id: string): Promise<OrderEntity> {
     const order = await this.prismaService.order.findUnique({
@@ -41,7 +53,7 @@ export class OrdersService {
     }
 
     if (data.status) {
-      where += ` and status = '${data.status}'`;
+      where += ` and o.status = '${data.status}'`;
     }
 
     if (data.cpfCnpj) {
@@ -91,10 +103,14 @@ export class OrdersService {
     };
   }
 
-  async update(user: User, data: UpdateOrderDto): Promise<OrderEntity> {
-    const { id, ...updateData } = data;
+  async update(
+    user: User,
+    orderId: string,
+    data: UpdateOrderDto,
+  ): Promise<OrderEntity> {
+    const updateData = { ...data };
     const existing: any = await this.prismaService.order.findFirst({
-      where: { id },
+      where: { id: orderId },
     });
 
     if (!existing) {
@@ -115,7 +131,7 @@ export class OrdersService {
     const order = await this.prismaService.$transaction(async (prisma) => {
       await prisma.orderLog.create({
         data: {
-          orderId: id,
+          orderId,
           userId: user.id,
           status: updateData.status,
           observation: updateData.observation,
@@ -123,7 +139,7 @@ export class OrdersService {
       });
 
       const order = await prisma.order.update({
-        where: { id },
+        where: { id: orderId },
         data: updateData,
         include: {
           orderProducts: { include: { product: true } },
@@ -131,6 +147,19 @@ export class OrdersService {
           orderLogs: { orderBy: { createdAt: 'asc' } },
         },
       });
+
+      await this.notificationService.create(
+        order.companyId,
+        {
+          orderId: order.id,
+          label: `O status da sua compra foi alterado para "${OrderEntity.getLabel(
+            data.status,
+          )}"`,
+          target: NotificationTarget.CLIENT,
+          type: NotificationType.UPDATE_ORDER,
+        },
+        prisma,
+      );
 
       return order;
     });

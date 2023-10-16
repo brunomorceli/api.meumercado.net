@@ -43,4 +43,23 @@ export class OrderEntity {
   constructor(data: Order) {
     Object.keys(data).forEach((key) => (this[key] = data[key]));
   }
+
+  static getLabel(status: OrderStatus): string {
+    switch (status) {
+      case OrderStatus.PENDING:
+        return 'Aguardando resposta';
+      case OrderStatus.PREPARING:
+        return 'Em preparo';
+      case OrderStatus.SHIPPING:
+        return 'Em trânsito';
+      case OrderStatus.DELIVERING:
+        return 'Rota de entrega';
+      case OrderStatus.DONE:
+        return 'Entregue';
+      case OrderStatus.CANCELED_BY_COMPANY:
+        return 'Cancelado pelo estabelecimento';
+      case OrderStatus.CANCELED_BY_CLIENT:
+        return 'Cancelado pelo cliente';
+    }
+  }
 }
