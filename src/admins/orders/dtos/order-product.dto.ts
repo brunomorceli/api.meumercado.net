@@ -1,8 +1,8 @@
 import { NumberDecorator, StringDecorator, UuidDecorator } from '@App/shared';
 
 export class OrderProductDto {
-  @UuidDecorator()
-  id: string;
+  @NumberDecorator()
+  id: number;
 
   @StringDecorator()
   name: string;

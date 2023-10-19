@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { IdParamDto } from '@App/shared';
+import { NumberIdParamDto } from '@App/shared';
 import { FindOrderDto, FindOrderResultDto, UpdateOrderDto } from './dtos';
 import { OrderEntity } from './entities';
 import { AuthGuard } from '@nestjs/passport';
@@ -25,15 +25,15 @@ export class OrdersController {
   @Patch(':id')
   update(
     @Req() req: any,
-    @Param() props: IdParamDto,
+    @Param() props: NumberIdParamDto,
     @Body() data: UpdateOrderDto,
   ): Promise<OrderEntity> {
-    return this.ordersService.update(req.user, props.id, data);
+    return this.ordersService.update(req.user, Number(props.id), data);
   }
 
   @Get(':id/get')
-  get(@Req() req: any, @Param() props: IdParamDto): Promise<OrderEntity> {
-    return this.ordersService.get(req.user.company.id, props.id);
+  get(@Req() req: any, @Param() props: NumberIdParamDto): Promise<OrderEntity> {
+    return this.ordersService.get(req.user.company.id, Number(props.id));
   }
 
   @Get('find')

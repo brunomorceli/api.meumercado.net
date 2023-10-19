@@ -23,8 +23,8 @@ export class NotificationDto {
   @UuidDecorator({ required: false })
   userId?: string;
 
-  @UuidDecorator({ required: false })
-  orderId?: string;
+  @NumberDecorator({ required: false })
+  orderId?: number;
 
   @UuidDecorator()
   companyId: string;

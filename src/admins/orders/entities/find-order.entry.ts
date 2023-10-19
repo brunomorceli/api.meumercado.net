@@ -3,19 +3,23 @@ import {
   EnumDecorator,
   NumberDecorator,
   StringDecorator,
+  StringNumberDecorator,
   UuidDecorator,
 } from '@App/shared';
 import { OrderStatus } from '@prisma/client';
 
 export class FindOrderEntity {
-  @UuidDecorator()
-  id: string;
+  @StringNumberDecorator()
+  id: number;
 
   @UuidDecorator()
   userId: string;
 
   @StringDecorator()
   userName: string;
+
+  @StringDecorator({ required: false })
+  phoneNumber?: string;
 
   @StringDecorator()
   cpfCnpj: string;

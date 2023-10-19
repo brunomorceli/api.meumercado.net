@@ -2,6 +2,7 @@ import {
   ArrayDecorator,
   DateDecorator,
   EnumDecorator,
+  NumberDecorator,
   StringDecorator,
   UuidDecorator,
 } from '@App/shared';
@@ -11,8 +12,8 @@ import { Order, OrderStatus } from '@prisma/client';
 import { OrderLogDto } from '@App/customers/orders/dtos/order-log.dto';
 
 export class OrderEntity {
-  @UuidDecorator()
-  id: string;
+  @NumberDecorator()
+  id: number;
 
   @UuidDecorator()
   userId: string;

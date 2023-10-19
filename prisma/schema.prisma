@@ -124,7 +124,7 @@ model Product {
 }
 
 model Order {
-  id          String      @id @default(uuid()) @db.Uuid
+  id          Int         @id @default(autoincrement())
   userId      String?     @map("user_id") @db.Uuid
   user        User?       @relation(fields: [userId], references: [id])
   companyId   String      @map("company_id") @db.Uuid
@@ -147,7 +147,7 @@ model OrderLog {
   id          String      @id @default(uuid()) @db.Uuid
   userId      String      @map("user_id") @db.Uuid
   user        User        @relation(fields: [userId], references: [id])
-  orderId     String      @map("order_id") @db.Uuid
+  orderId     Int         @map("order_id")
   order       Order       @relation(fields: [orderId], references: [id])
   status      OrderStatus
   observation String?
@@ -161,7 +161,7 @@ model Payment {
   amount         Int
   discount       Int?
   observation    String?
-  orderId        String          @map("order_id") @db.Uuid
+  orderId        Int             @map("order_id")
   order          Order           @relation(fields: [orderId], references: [id])
   method         PaymentMethod   @default(CASH)
   creditCardName String?         @map("credit_card_name")
@@ -180,7 +180,7 @@ model OrderProduct {
   quantity  Int
   price     Int
   total     Int
-  orderId   String    @map("order_id") @db.Uuid
+  orderId   Int       @map("order_id")
   order     Order     @relation(fields: [orderId], references: [id])
   productId String    @map("product_id") @db.Uuid
   product   Product   @relation(fields: [productId], references: [id])
@@ -198,7 +198,7 @@ model Notification {
   type      NotificationType   @default(UPDATE_ORDER)
   userId    String?            @map("user_id") @db.Uuid
   user      User?              @relation(fields: [userId], references: [id])
-  orderId   String?            @map("order_id") @db.Uuid
+  orderId   Int?               @map("order_id")
   order     Order?             @relation(fields: [orderId], references: [id])
   companyId String             @map("company_id") @db.Uuid
   company   Company            @relation(fields: [companyId], references: [id])

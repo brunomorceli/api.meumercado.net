@@ -1,9 +1,9 @@
-import { EnumDecorator, StringDecorator, UuidDecorator } from '@App/shared';
+import { EnumDecorator, NumberDecorator, StringDecorator } from '@App/shared';
 import { CreditCardType, OrderStatus } from '@prisma/client';
 
 export class OrderLogDto {
-  @UuidDecorator()
-  id: string;
+  @NumberDecorator()
+  id: number;
 
   @StringDecorator()
   observation: string;

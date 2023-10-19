@@ -78,7 +78,7 @@ export class OrdersService {
     return new OrderEntity(order as any);
   }
 
-  async get(companyId: string, id: string): Promise<OrderEntity> {
+  async get(companyId: string, id: number): Promise<OrderEntity> {
     const order = await this.prismaService.order.findUnique({
       where: { companyId, id },
       include: {
@@ -132,7 +132,7 @@ export class OrdersService {
   async cancel(
     user: User,
     observation: string,
-    orderId: string,
+    orderId: number,
   ): Promise<OrderEntity> {
     const existing: any = await this.prismaService.order.findFirst({
       where: { id: orderId, userId: user.id },

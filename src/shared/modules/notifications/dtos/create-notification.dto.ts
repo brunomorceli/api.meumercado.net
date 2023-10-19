@@ -1,5 +1,10 @@
 import { NotificationTarget, NotificationType } from '@prisma/client';
-import { EnumDecorator, StringDecorator, UuidDecorator } from '@App/shared';
+import {
+  EnumDecorator,
+  NumberDecorator,
+  StringDecorator,
+  UuidDecorator,
+} from '@App/shared';
 
 export class CreateNotificationDto {
   @StringDecorator()
@@ -14,6 +19,6 @@ export class CreateNotificationDto {
   @UuidDecorator({ required: false })
   userId?: string;
 
-  @UuidDecorator({ required: false })
-  orderId?: string;
+  @NumberDecorator({ required: false })
+  orderId?: number;
 }

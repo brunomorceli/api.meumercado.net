@@ -21,7 +21,7 @@ export class OrdersService {
     private readonly notificationService: NotificationsService,
   ) {}
 
-  async get(companyId: string, id: string): Promise<OrderEntity> {
+  async get(companyId: string, id: number): Promise<OrderEntity> {
     const order = await this.prismaService.order.findUnique({
       where: { companyId, id },
       include: {
@@ -69,13 +69,14 @@ export class OrdersService {
     );
 
     const sql = `
-        select
+      select
         distinct o.id,
         o.company_id as "companyId",
         o.observation,
         u.name as "userName",
         u.id as "userId",
         u.cpf_cnpj as "cpfCnpj",
+        u.phone_number as "phoneNumber",
         cast((select sum(op.price * op.quantity) from order_products as op where op.order_id = o.id) as text) as total,
         cast((select count(id) from order_products as op where op.order_id = o.id) as text) as "productCount",
         o.status,
@@ -96,16 +97,13 @@ export class OrdersService {
       page: paginationData.page,
       limit: paginationData.limit,
       total: 0,
-      data: ((orders as any[]).map((c: any) => {
-        delete c.user;
-        return new FindOrderEntity(c);
-      }) || []) as any,
+      data: (orders as any[]).map((c: any) => new FindOrderEntity(c)) || [],
     };
   }
 
   async update(
     user: User,
-    orderId: string,
+    orderId: number,
     data: UpdateOrderDto,
   ): Promise<OrderEntity> {
     const updateData = { ...data };
