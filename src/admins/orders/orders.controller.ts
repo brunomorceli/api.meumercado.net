@@ -11,7 +11,13 @@ import {
 import { OrdersService } from './orders.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { NumberIdParamDto } from '@App/shared';
-import { FindOrderDto, FindOrderResultDto, UpdateOrderDto } from './dtos';
+import {
+  FindOrderByUserDto,
+  FindOrderByUserResultDto,
+  FindOrderDto,
+  FindOrderResultDto,
+  UpdateOrderDto,
+} from './dtos';
 import { OrderEntity } from './entities';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -42,5 +48,13 @@ export class OrdersController {
     @Query() findOrderDto: FindOrderDto,
   ): Promise<FindOrderResultDto> {
     return this.ordersService.find(req.user.company.id, findOrderDto);
+  }
+
+  @Get('find-by-user')
+  findByUser(
+    @Req() req: any,
+    @Query() findOrderDto: FindOrderByUserDto,
+  ): Promise<FindOrderByUserResultDto> {
+    return this.ordersService.findByUser(req.user.company.id, findOrderDto);
   }
 }

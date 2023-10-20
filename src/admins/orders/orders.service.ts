@@ -5,7 +5,12 @@ import {
   PrismaService,
 } from '@App/shared';
 import { FindOrderEntity, OrderEntity } from './entities';
-import { FindOrderDto, FindOrderResultDto, UpdateOrderDto } from './dtos';
+import {
+  FindOrderByUserDto,
+  FindOrderDto,
+  FindOrderResultDto,
+  UpdateOrderDto,
+} from './dtos';
 import {
   NotificationTarget,
   NotificationType,
@@ -13,6 +18,7 @@ import {
   User,
 } from '@prisma/client';
 import * as Slug from 'slug';
+import { FindOrderByUserResultDto } from './dtos/find-order-by-user-result.dto';
 
 @Injectable()
 export class OrdersService {
@@ -28,6 +34,7 @@ export class OrdersService {
         orderProducts: { include: { product: true } },
         payments: true,
         orderLogs: { orderBy: { createdAt: 'asc' } },
+        user: true,
       },
     });
 
@@ -98,6 +105,39 @@ export class OrdersService {
       limit: paginationData.limit,
       total: 0,
       data: (orders as any[]).map((c: any) => new FindOrderEntity(c)) || [],
+    };
+  }
+
+  async findByUser(
+    companyId: string,
+    data: FindOrderByUserDto,
+  ): Promise<FindOrderByUserResultDto> {
+    const where: any = {
+      companyId,
+      userId: data.userId,
+      deletedAt: null,
+    };
+
+    const paginationData = PaginationDto.getPaginationParams(data);
+    const total = await this.prismaService.order.count({ where });
+
+    const users = await this.prismaService.order.findMany({
+      where,
+      include: {
+        orderProducts: { include: { product: true } },
+        payments: true,
+        orderLogs: { orderBy: { createdAt: 'asc' } },
+      },
+      skip: paginationData.skip,
+      take: paginationData.limit,
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return {
+      page: paginationData.page,
+      limit: paginationData.limit,
+      total,
+      data: users.map((c: any) => new OrderEntity(c)) || [],
     };
   }
 

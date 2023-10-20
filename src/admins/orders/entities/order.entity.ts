@@ -10,13 +10,20 @@ import { OrderProductDto } from '../dtos/order-product.dto';
 import { OrderPaymentDto } from '../dtos/order-payment.dto';
 import { Order, OrderStatus } from '@prisma/client';
 import { OrderLogDto } from '@App/customers/orders/dtos/order-log.dto';
+import { UserEntity } from '@App/admins/users';
+import { Type } from 'class-transformer';
+import { IsOptional } from 'class-validator';
 
 export class OrderEntity {
   @NumberDecorator()
   id: number;
 
   @UuidDecorator()
-  userId: string;
+  userId: UserEntity;
+
+  @Type(() => UserEntity)
+  @IsOptional()
+  user?: UserEntity;
 
   @UuidDecorator()
   companyId: string;
@@ -41,8 +48,12 @@ export class OrderEntity {
   @DateDecorator({ description: 'Deleting date.', required: false })
   deletedAt?: string;
 
-  constructor(data: Order) {
+  constructor(data: Order | any) {
     Object.keys(data).forEach((key) => (this[key] = data[key]));
+
+    if (data.user) {
+      this.user = new UserEntity(data.user);
+    }
   }
 
   static getLabel(status: OrderStatus): string {
