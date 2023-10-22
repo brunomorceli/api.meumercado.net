@@ -10,8 +10,11 @@ import {
   NotificationTarget,
   NotificationType,
   OrderStatus,
+  Product,
   User,
 } from '@prisma/client';
+import { CheckStockResultDto } from './dtos/check-stock.result.dto';
+import { CheckStockDto } from './dtos/check-stock.dto';
 
 @Injectable()
 export class OrdersService {
@@ -19,6 +22,38 @@ export class OrdersService {
     private readonly prismaService: PrismaService,
     private readonly notificationService: NotificationsService,
   ) {}
+
+  async checkStock(
+    companyId: string,
+    data: CheckStockDto,
+    prismaHandler?: any,
+  ): Promise<CheckStockResultDto> {
+    const result: CheckStockResultDto = { products: [], unlimitedProducts: [] };
+
+    const prisma = prismaHandler || this.prismaService;
+
+    for (const i in data.products) {
+      const op = data.products[i];
+
+      const product: Product = await prisma.product.findFirst({
+        where: { id: op.productId, companyId },
+      });
+
+      if (product.unlimited) {
+        result.unlimitedProducts.push(product.id);
+        continue;
+      }
+
+      if (product.quantity < op.quantity) {
+        result.products.push({
+          productId: op.productId,
+          quantity: product.quantity,
+        });
+      }
+    }
+
+    return result;
+  }
 
   async create(user: User, data: CreateOrderDto): Promise<OrderEntity> {
     const order = await this.prismaService.$transaction(async (prisma) => {
@@ -38,6 +73,30 @@ export class OrdersService {
           orderId: order.id,
         })),
       });
+
+      const outOfStock = await this.checkStock(
+        user.companyId,
+        { products: data.orderProducts },
+        prisma,
+      );
+
+      if (outOfStock.products.length !== 0) {
+        throw new HttpException(
+          'Alguns produtos se encontram fora de estoque',
+          HttpStatus.NOT_ACCEPTABLE,
+        );
+      }
+
+      await Promise.all(
+        data.orderProducts
+          .filter((op) => !outOfStock.unlimitedProducts.includes(op.productId))
+          .map(async (op) =>
+            prisma.product.update({
+              where: { id: op.productId },
+              data: { quantity: { decrement: op.quantity } },
+            }),
+          ) || [],
+      );
 
       await prisma.payment.createMany({
         data: data.payments.map((payment) => ({

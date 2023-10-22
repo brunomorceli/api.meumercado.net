@@ -15,6 +15,8 @@ import { NumberIdParamDto, PaginationDto } from '@App/shared';
 import { CancelOrderDto, CreateOrderDto, FindOrderResultDto } from './dtos';
 import { OrderEntity } from './entities';
 import { AuthGuard } from '@nestjs/passport';
+import { CheckStockResultDto } from './dtos/check-stock.result.dto';
+import { CheckStockDto } from './dtos/check-stock.dto';
 
 @ApiTags('customers/orders')
 @ApiBearerAuth('access-token')
@@ -52,5 +54,13 @@ export class OrdersController {
       data.observation,
       Number(props.id),
     );
+  }
+
+  @Post('check-stock')
+  checkStock(
+    @Body() data: CheckStockDto,
+    @Req() req: any,
+  ): Promise<CheckStockResultDto> {
+    return this.ordersService.checkStock(req.user.company.id, data);
   }
 }

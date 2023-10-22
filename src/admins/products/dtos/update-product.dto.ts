@@ -23,7 +23,7 @@ export class UpdateProductDto {
   @BooleanDecorator({ required: false })
   unlimited?: boolean;
 
-  @NumberDecorator({ min: 1, required: false })
+  @NumberDecorator({ min: 0, required: false, empty: true })
   quantity?: number;
 
   @StringDecorator({ required: false, empty: true })
