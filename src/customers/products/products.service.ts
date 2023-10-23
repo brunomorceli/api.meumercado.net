@@ -12,7 +12,7 @@ export class ProductsService {
     tenantId: string,
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
-    const { label, categoryId } = findProductDto;
+    const { label, categories } = findProductDto;
 
     const company = await this.prismaService.company.findUnique({
       where: { tenantId },
@@ -29,8 +29,8 @@ export class ProductsService {
       where.slug = { startsWith: Slug(label) };
     }
 
-    if (categoryId) {
-      where.categories = { has: categoryId };
+    if (categories) {
+      where.OR = [...categories.map((c) => ({ categories: { has: c } }))];
     }
 
     let products = [];
@@ -43,6 +43,7 @@ export class ProductsService {
         where,
         skip: paginationData.skip,
         take: paginationData.limit,
+        orderBy: [{ label: 'asc' }],
       });
     }
 
@@ -52,6 +53,25 @@ export class ProductsService {
       total,
       data: products.map((p) => new ProductEntity(p)) || [],
     };
+  }
+
+  async get(tenantId: string, productId: string): Promise<ProductEntity> {
+    const company = await this.prismaService.company.findUnique({
+      where: { tenantId },
+    });
+
+    if (!company) {
+      throw new BadRequestException('Registro inválido.');
+    }
+
+    const product = await this.prismaService.product.findFirst({
+      where: {
+        id: productId,
+        companyId: company.id,
+      },
+    });
+
+    return new ProductEntity(product);
   }
 
   async delete(companyId: string, id: string): Promise<void> {

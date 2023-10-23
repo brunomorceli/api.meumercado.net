@@ -1,8 +1,13 @@
-import { PaginationDto, StringDecorator, UuidDecorator } from '@App/shared';
+import { PaginationDto, StringDecorator } from '@App/shared';
+import { Transform } from 'class-transformer';
+import { IsArray, IsOptional, IsString } from 'class-validator';
 
 export class FindProductDto extends PaginationDto {
-  @UuidDecorator({ required: false })
-  categoryId?: string;
+  @IsOptional()
+  @Transform(({ value }) => value.split(','))
+  @IsString({ each: true })
+  @IsArray()
+  categories?: string[];
 
   @StringDecorator({ required: false, minLength: 3 })
   label?: string;

@@ -59,12 +59,16 @@ export class OrdersService {
       where += ` and u.slug ilike('${Slug(data.userName)}%')`;
     }
 
-    if (data.status) {
-      where += ` and o.status = '${data.status}'`;
+    if (data.statusGroups || data.status) {
+      if (data.statusGroups) {
+        where += FindOrderDto.getWhereByStatusGroup(data.statusGroups, 'o');
+      } else {
+        where += ` and o.status = '${data.status}'`;
+      }
     }
 
     if (data.cpfCnpj) {
-      where += ` and u."cpfCnpj" ilike('${data.cpfCnpj}%')`;
+      where += ` and u.cpf_cnpj ilike('${data.cpfCnpj}%')`;
     }
 
     if (data.productName) {
