@@ -3,6 +3,7 @@ import { PrismaService } from '@App/shared/modules/prisma';
 import { FindProductDto, FindProductResultDto } from './dtos';
 import { ProductEntity } from './entities';
 import * as Slug from 'slug';
+import { GeneralUtils } from '@App/shared';
 
 @Injectable()
 export class ProductsService {
@@ -36,12 +37,22 @@ export class ProductsService {
     let products = [];
     const total = await this.prismaService.product.count({ where });
     if (total !== 0) {
-      products = await this.prismaService.product.findMany({
-        where,
-        skip: paginationData.skip,
-        take: paginationData.limit,
-        orderBy: [{ label: 'asc' }],
-      });
+      if (findProductDto.random && total > 12) {
+        const shuffle = GeneralUtils.generateShuffleArray(total).slice(0, 12);
+
+        for (const skip of shuffle) {
+          products.push(
+            await this.prismaService.product.findFirst({ where, skip }),
+          );
+        }
+      } else {
+        products = await this.prismaService.product.findMany({
+          where,
+          skip: paginationData.skip,
+          take: paginationData.limit,
+          orderBy: [{ label: 'asc' }],
+        });
+      }
     }
 
     return {
