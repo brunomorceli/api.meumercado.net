@@ -34,10 +34,7 @@ export class ProductsService {
     }
 
     let products = [];
-    const total = await this.prismaService.product.count({
-      where,
-      skip: paginationData.skip,
-    });
+    const total = await this.prismaService.product.count({ where });
     if (total !== 0) {
       products = await this.prismaService.product.findMany({
         where,
