@@ -23,27 +23,29 @@ model Company {
   responsible       String?
   description       String?
   logo              String?
+  covers            String[]
   categories        Json
   status            CompanyStatusType @default(ACTIVE)
   createdAt         DateTime          @default(now()) @map("created_at")
   updatedAt         DateTime          @updatedAt @map("updated_at")
   deletedAt         DateTime?         @map("deleted_at")
 
-  users    User[]
-  products Product[]
+  users         User[]
+  products      Product[]
+  orders        Order[]
+  notifications Notification[]
 
   @@map("companies")
 }
 
 model User {
   id                String         @id @default(uuid()) @db.Uuid
-  status            UserStatusType @default(ACTIVE)
   companyId         String         @map("company_id") @db.Uuid
   company           Company        @relation(fields: [companyId], references: [id])
   role              RoleType       @default(CUSTOMER)
-  firstName         String
-  lastName          String
-  email             String         @unique
+  name              String
+  slug              String
+  email             String
   phoneNumber       String?        @map("phone_number")
   cpfCnpj           String?        @map("cpf_cnpj")
   address           String?
@@ -53,63 +55,18 @@ model User {
   city              String?
   state             String?
   cep               String?
+  status            UserStatusType @default(ACTIVE)
   createdAt         DateTime       @default(now()) @map("created_at")
   updatedAt         DateTime       @updatedAt @map("updated_at")
   deletedAt         DateTime?      @map("deleted_at")
 
   authentications Authentication[]
-  billingDatas    BillingData[]
-  deliveryDatas   DeliveryData[]
+  orders          Order[]
+  orderLogs       OrderLog[]
+  notifications   Notification[]
 
+  @@unique([email, companyId])
   @@map("users")
-}
-
-model BillingData {
-  id                String  @id @default(uuid()) @db.Uuid
-  email             String
-  phoneNumber       String? @map("phone_number")
-  cpfCnpj           String? @map("cpf_cnpj")
-  address           String?
-  addressComplement String? @map("address_complement")
-  neighborhood      String?
-  addressNumber     String? @map("address_number")
-  city              String?
-  state             String?
-  cep               String?
-  responsible       String?
-
-  userId String? @map("user_id") @db.Uuid
-  user   User?   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("billing_data")
-}
-
-model DeliveryData {
-  id                String  @id @default(uuid()) @db.Uuid
-  email             String
-  phoneNumber       String? @map("phone_number")
-  cpfCnpj           String? @map("cpf_cnpj")
-  address           String?
-  addressComplement String? @map("address_complement")
-  neighborhood      String?
-  addressNumber     String? @map("address_number")
-  city              String?
-  state             String?
-  cep               String?
-  responsible       String?
-
-  userId String? @map("user_id") @db.Uuid
-  user   User?   @relation(fields: [userId], references: [id])
-
-  createdAt DateTime  @default(now()) @map("created_at")
-  updatedAt DateTime  @updatedAt @map("updated_at")
-  deletedAt DateTime? @map("deleted_at")
-
-  @@map("delivery_data")
 }
 
 model Authentication {
@@ -130,38 +87,125 @@ model Authentication {
 }
 
 model Product {
-  id            String            @id @default(uuid()) @db.Uuid
-  label         String
-  description   String?
-  slug          String
-  unlimited     Boolean           @default(false)
-  quantity      Int?
-  showPrice     Boolean           @default(true) @map("show_price")
-  price         Int
-  discountPrice Int?              @map("discount_price")
-  sku           String?
-  barcode       String?
-  status        ProductStatusType @default(ACTIVE)
-  categories    String[]          @default([]) @db.Uuid
-  width String?
-  height String?
-  length String?
-  weight String?
-  attributes    Json
-  pictures      String[]
-  videos        String[]
-  type          ProductType       @default(PHYSIC)
-  companyId     String            @map("company_id") @db.Uuid
-  company       Company           @relation(fields: [companyId], references: [id])
-  createdAt     DateTime          @default(now()) @map("created_at")
-  updatedAt     DateTime          @updatedAt @map("updated_at")
-  deletedAt     DateTime?         @map("deleted_at")
+  id             String            @id @default(uuid()) @db.Uuid
+  label          String
+  description    String?
+  slug           String
+  unlimited      Boolean           @default(false)
+  quantity       Int?
+  quantitySulfix String?           @map("quantity_sulfix")
+  showPrice      Boolean           @default(true) @map("show_price")
+  price          Int
+  discountPrice  Int?              @map("discount_price")
+  sku            String?
+  barcode        String?
+  status         ProductStatusType @default(ACTIVE)
+  categories     String[]          @default([]) @db.Uuid
+  width          String?
+  height         String?
+  length         String?
+  weight         String?
+  attributes     Json
+  pictures       String[]
+  videos         String[]
+  type           ProductType       @default(PHYSIC)
+  companyId      String            @map("company_id") @db.Uuid
+  company        Company           @relation(fields: [companyId], references: [id])
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  deletedAt      DateTime?         @map("deleted_at")
+
+  orderProducts OrderProduct[]
 
   @@index([slug])
   @@index([sku])
   @@index([barcode])
   @@index([categories])
   @@map("products")
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  userId      String?     @map("user_id") @db.Uuid
+  user        User?       @relation(fields: [userId], references: [id])
+  companyId   String      @map("company_id") @db.Uuid
+  company     Company     @relation(fields: [companyId], references: [id])
+  status      OrderStatus
+  observation String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  deletedAt   DateTime?   @map("deleted_at")
+
+  orderProducts OrderProduct[]
+  payments      Payment[]
+  orderLogs     OrderLog[]
+  notifications Notification[]
+
+  @@map("orders")
+}
+
+model OrderLog {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  user        User        @relation(fields: [userId], references: [id])
+  orderId     Int         @map("order_id")
+  order       Order       @relation(fields: [orderId], references: [id])
+  status      OrderStatus
+  observation String?
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@map("order_logs")
+}
+
+model Payment {
+  id             String          @id @default(uuid()) @db.Uuid
+  amount         Int
+  discount       Int?
+  observation    String?
+  orderId        Int             @map("order_id")
+  order          Order           @relation(fields: [orderId], references: [id])
+  method         PaymentMethod   @default(CASH)
+  creditCardName String?         @map("credit_card_name")
+  creditCardType CreditCardType? @map("credit_card_type")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  deletedAt      DateTime?       @map("deleted_at")
+
+  @@unique([id, orderId])
+  @@map("payments")
+}
+
+model OrderProduct {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  quantity  Int
+  price     Int
+  total     Int
+  orderId   Int       @map("order_id")
+  order     Order     @relation(fields: [orderId], references: [id])
+  productId String    @map("product_id") @db.Uuid
+  product   Product   @relation(fields: [productId], references: [id])
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  @@map("order_products")
+}
+
+model Notification {
+  id        Int                @id @default(autoincrement())
+  label     String
+  target    NotificationTarget @default(CLIENT)
+  type      NotificationType   @default(UPDATE_ORDER)
+  userId    String?            @map("user_id") @db.Uuid
+  user      User?              @relation(fields: [userId], references: [id])
+  orderId   Int?               @map("order_id")
+  order     Order?             @relation(fields: [orderId], references: [id])
+  companyId String             @map("company_id") @db.Uuid
+  company   Company            @relation(fields: [companyId], references: [id])
+  createdAt DateTime           @default(now()) @map("created_at")
+
+  @@map("notifications")
 }
 
 enum RoleType {
@@ -196,4 +240,39 @@ enum CompanyStatusType {
 enum ProductType {
   PHYSIC
   DIGITAL
+}
+
+enum OrderStatus {
+  PENDING
+  PREPARING
+  SHIPPING
+  DELIVERING
+  DONE
+  CANCELED_BY_COMPANY
+  CANCELED_BY_CLIENT
+}
+
+enum PaymentMethod {
+  CASH
+  PIX
+  CREDIT_CARD
+  CREDIT
+}
+
+enum CreditCardType {
+  CREDIT
+  DEBIT
+}
+
+enum NotificationTarget {
+  COMPANY
+  CLIENT
+}
+
+enum NotificationType {
+  NEW_ORDER
+  UPDATE_ORDER
+  CANCEL_ORDER
+  DELIVERY_ORDER
+  MESSAGE
 }

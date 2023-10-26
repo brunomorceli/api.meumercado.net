@@ -1,4 +1,4 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import {
   DocumentBuilder,
@@ -6,7 +6,6 @@ import {
   SwaggerModule,
 } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { JwtAuthGuard } from './shared/modules/auth';
 import { json, urlencoded } from 'express';
 
 async function bootstrap() {
@@ -19,9 +18,8 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
-  const reflector = app.get(Reflector);
-
-  app.useGlobalGuards(new JwtAuthGuard(reflector));
+  //const reflector = app.get(Reflector);
+  //app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   const config = new DocumentBuilder()
     .setTitle('api.nearstore')

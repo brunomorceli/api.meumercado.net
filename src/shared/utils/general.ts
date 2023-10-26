@@ -26,9 +26,9 @@ export class GeneralUtils {
     return result;
   }
 
-  public static generateJwt(tokenData: any): JwtResult {
+  public static generateJwt(tokenData: any, secret: string): JwtResult {
     const createdAt: string = new Date().toISOString();
-    const tokenOptions = { secret: process.env.JWT_SECRET };
+    const tokenOptions = { secret };
     const payload = { ...tokenData, createdAt };
     const token = this.getJwtService().sign(payload, tokenOptions);
 
@@ -47,5 +47,26 @@ export class GeneralUtils {
 
     const tenantId = domain.split('.')[0];
     return tenantId;
+  }
+
+  public static shuffle(array: any[]): any[] {
+    let currentIndex = array.length,
+      randomIndex;
+
+    while (currentIndex > 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex],
+        array[currentIndex],
+      ];
+    }
+
+    return array;
+  }
+
+  public static generateShuffleArray(numOfElements: number): number[] {
+    return this.shuffle(Array.from(Array(numOfElements).keys()));
   }
 }
