@@ -3,6 +3,7 @@ import {
   DateDecorator,
   EntityDto,
   EnumDecorator,
+  ImageArrayDecorator,
   ImageDecorator,
   StringDecorator,
   UuidDecorator,
@@ -24,6 +25,9 @@ export class CompanyEntity {
 
   @ImageDecorator({ required: false })
   logo?: string;
+
+  @ImageArrayDecorator()
+  covers: string[];
 
   @ArrayDecorator({ type: CategoryDto })
   categories: CategoryDto[];

@@ -116,6 +116,26 @@ export class CompaniesService {
         updateData.logo = this.bucketService.getImageUrl(this.bucketName, id);
       }
 
+      if (updateData.covers) {
+        for (let i = 0; i < updateData.covers.length; i++) {
+          if (updateData.covers[i].indexOf('data:image') !== 0) {
+            continue;
+          }
+
+          const imageName = `${company.id}_${randomUUID()}`;
+          await this.bucketService.uploadImage(
+            this.bucketName,
+            imageName,
+            updateData.covers[i],
+          );
+
+          updateData.covers[i] = this.bucketService.getImageUrl(
+            this.bucketName,
+            imageName,
+          );
+        }
+      }
+
       return await prisma.company.update({
         where: { id },
         data: updateData as any,

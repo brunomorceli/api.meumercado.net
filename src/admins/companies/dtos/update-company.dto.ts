@@ -4,6 +4,7 @@ import {
   CpfCnpjDecorator,
   EmailDecorator,
   EnumDecorator,
+  ImageArrayDecorator,
   ImageDecorator,
   PhoneNumberDecorator,
   StringDecorator,
@@ -28,6 +29,9 @@ export class UpdateCompanyDto {
 
   @ImageDecorator({ description: 'Image', required: false, empty: true })
   logo?: string;
+
+  @ImageArrayDecorator({ required: false })
+  covers?: string[];
 
   @ArrayDecorator({ type: CategoryDto, required: false })
   categories?: CategoryDto[];

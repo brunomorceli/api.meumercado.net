@@ -23,6 +23,7 @@ model Company {
   responsible       String?
   description       String?
   logo              String?
+  covers            String[]
   categories        Json
   status            CompanyStatusType @default(ACTIVE)
   createdAt         DateTime          @default(now()) @map("created_at")
