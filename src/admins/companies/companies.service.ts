@@ -74,6 +74,14 @@ export class CompaniesService {
           categories: [{ label: 'Geral', value: randomUUID() }],
           status: CompanyStatusType.ACTIVE,
           tenantId,
+          theme: {
+            primaryColor: '#03a9f4',
+            highlightColor: '#42a5f5',
+            secondaryColor: '#eb2f96',
+            backgroundColor: '#e0e0e0',
+            textColor: '#434343',
+            headerTextColor: '#ffffff',
+          },
         },
       });
 

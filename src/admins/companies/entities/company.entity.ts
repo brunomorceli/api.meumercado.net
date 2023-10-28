@@ -9,8 +9,9 @@ import {
   UuidDecorator,
 } from '@App/shared';
 import { Company, CompanyStatusType } from '@prisma/client';
-import { CategoryDto } from '../dtos';
+import { CategoryDto, ThemeDto } from '../dtos';
 import { IsInstance, IsOptional } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CompanyEntity {
   @UuidDecorator()
@@ -31,6 +32,10 @@ export class CompanyEntity {
 
   @ArrayDecorator({ type: CategoryDto })
   categories: CategoryDto[];
+
+  @Type(() => ThemeDto)
+  @IsOptional()
+  theme?: ThemeDto;
 
   @EnumDecorator({ enumType: CompanyStatusType })
   status: CompanyStatusType;
