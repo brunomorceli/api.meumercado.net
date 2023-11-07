@@ -81,6 +81,9 @@ export class CompaniesService {
             backgroundColor: '#e0e0e0',
             textColor: '#434343',
             headerTextColor: '#ffffff',
+            panelBackgroundColor: '#ffffff',
+            panelTextColor: '#434343',
+            titleTextColor: '#434343',
           },
         },
       });

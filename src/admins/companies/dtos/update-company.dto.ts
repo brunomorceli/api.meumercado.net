@@ -13,9 +13,7 @@ import {
 } from '@App/shared';
 import { CompanyStatusType } from '@prisma/client';
 import { CategoryDto } from './category.dto';
-import { Type } from 'class-transformer';
-import { ThemeDto } from './theme.dto';
-import { IsOptional } from 'class-validator';
+import { IsObject, IsOptional } from 'class-validator';
 
 export class UpdateCompanyDto {
   @UuidDecorator()
@@ -39,9 +37,9 @@ export class UpdateCompanyDto {
   @ArrayDecorator({ type: CategoryDto, required: false })
   categories?: CategoryDto[];
 
-  @Type(() => ThemeDto)
+  @IsObject()
   @IsOptional()
-  theme?: ThemeDto;
+  theme?: any;
 
   @EnumDecorator({ enumType: CompanyStatusType, required: false })
   status?: CompanyStatusType;
