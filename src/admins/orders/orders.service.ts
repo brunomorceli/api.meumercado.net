@@ -91,7 +91,8 @@ export class OrdersService {
         cast((select sum(op.price * op.quantity) from order_products as op where op.order_id = o.id) as text) as total,
         cast((select count(id) from order_products as op where op.order_id = o.id) as text) as "productCount",
         o.status,
-        o.created_at as "createdAt"
+        o.created_at as "createdAt",
+        o.delivery_type as "deliveryType"
       from orders as o
       inner join users as u on u.id = o.user_id
       inner join order_products as op on op.order_id = o.id

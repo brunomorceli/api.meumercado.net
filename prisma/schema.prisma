@@ -132,6 +132,7 @@ model Order {
   companyId   String      @map("company_id") @db.Uuid
   company     Company     @relation(fields: [companyId], references: [id])
   status      OrderStatus
+  deliveryType DeliveryType @map("delivery_type") @default(DELIVERY)
   observation String?
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
@@ -246,6 +247,7 @@ enum ProductType {
 enum OrderStatus {
   PENDING
   PREPARING
+  READY
   SHIPPING
   DELIVERING
   DONE
@@ -276,4 +278,9 @@ enum NotificationType {
   CANCEL_ORDER
   DELIVERY_ORDER
   MESSAGE
+}
+
+enum DeliveryType {
+  DELIVERY
+  CARRY
 }

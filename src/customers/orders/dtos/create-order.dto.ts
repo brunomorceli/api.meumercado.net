@@ -1,6 +1,7 @@
-import { ArrayDecorator, StringDecorator } from '@App/shared';
+import { ArrayDecorator, EnumDecorator, StringDecorator } from '@App/shared';
 import { CreateOrderProductDto } from './create-order-product.dto';
 import { CreateOrderPaymentDto } from './create-order-payment.dto';
+import { DeliveryType } from '@prisma/client';
 
 export class CreateOrderDto {
   @ArrayDecorator({ type: CreateOrderProductDto })
@@ -8,6 +9,9 @@ export class CreateOrderDto {
 
   @ArrayDecorator({ type: CreateOrderPaymentDto })
   payments: CreateOrderPaymentDto[];
+
+  @EnumDecorator({ enumType: DeliveryType })
+  deliveryType: DeliveryType;
 
   @StringDecorator({ required: false })
   observation?: string;

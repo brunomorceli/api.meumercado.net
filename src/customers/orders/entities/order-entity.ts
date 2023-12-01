@@ -8,7 +8,7 @@ import {
 } from '@App/shared';
 import { OrderProductDto } from '../dtos/order-product.dto';
 import { OrderPaymentDto } from '../dtos/order-payment.dto';
-import { Order, OrderStatus } from '@prisma/client';
+import { DeliveryType, Order, OrderStatus } from '@prisma/client';
 import { OrderLogDto } from '../dtos/order-log.dto';
 
 export class OrderEntity {
@@ -23,6 +23,9 @@ export class OrderEntity {
 
   @EnumDecorator({ enumType: OrderStatus })
   status: OrderStatus;
+
+  @EnumDecorator({ enumType: DeliveryType })
+  deliveryType: DeliveryType;
 
   @StringDecorator({ required: false })
   observation?: string;

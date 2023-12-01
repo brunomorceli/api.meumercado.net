@@ -6,7 +6,7 @@ import {
   StringNumberDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { OrderStatus } from '@prisma/client';
+import { DeliveryType, OrderStatus } from '@prisma/client';
 
 export class FindOrderEntity {
   @StringNumberDecorator()
@@ -29,6 +29,9 @@ export class FindOrderEntity {
 
   @EnumDecorator({ enumType: OrderStatus })
   status: OrderStatus;
+
+  @EnumDecorator({ enumType: DeliveryType })
+  deliveryType: DeliveryType;
 
   @StringDecorator({ required: false })
   observation?: string;
