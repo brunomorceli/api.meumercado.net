@@ -125,18 +125,28 @@ model Product {
   @@map("products")
 }
 
+model ProductBase {
+  id      Int     @id @default(autoincrement())
+  label   String?
+  ean     String?
+  picture String?
+
+  @@index([label])
+  @@map("product_bases")
+}
+
 model Order {
-  id          Int         @id @default(autoincrement())
-  userId      String?     @map("user_id") @db.Uuid
-  user        User?       @relation(fields: [userId], references: [id])
-  companyId   String      @map("company_id") @db.Uuid
-  company     Company     @relation(fields: [companyId], references: [id])
-  status      OrderStatus
-  deliveryType DeliveryType @map("delivery_type") @default(DELIVERY)
-  observation String?
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  deletedAt   DateTime?   @map("deleted_at")
+  id           Int          @id @default(autoincrement())
+  userId       String?      @map("user_id") @db.Uuid
+  user         User?        @relation(fields: [userId], references: [id])
+  companyId    String       @map("company_id") @db.Uuid
+  company      Company      @relation(fields: [companyId], references: [id])
+  status       OrderStatus
+  deliveryType DeliveryType @default(DELIVERY) @map("delivery_type")
+  observation  String?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  deletedAt    DateTime?    @map("deleted_at")
 
   orderProducts OrderProduct[]
   payments      Payment[]

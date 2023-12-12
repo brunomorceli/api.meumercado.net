@@ -16,4 +16,9 @@ export class FindProductDto extends PaginationDto {
   @Transform(({ value }) => Boolean(value))
   @IsBoolean({ each: true })
   random?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => Boolean(value))
+  @IsBoolean({ each: true })
+  onSale?: boolean;
 }

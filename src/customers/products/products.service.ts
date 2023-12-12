@@ -13,7 +13,7 @@ export class ProductsService {
     tenantId: string,
     findProductDto: FindProductDto,
   ): Promise<FindProductResultDto> {
-    const { label, categories } = findProductDto;
+    const { label, categories, onSale } = findProductDto;
 
     const company = await this.prismaService.company.findUnique({
       where: { tenantId },
@@ -32,6 +32,10 @@ export class ProductsService {
 
     if (categories) {
       where.OR = [...categories.map((c) => ({ categories: { has: c } }))];
+    }
+
+    if (onSale) {
+      where.discountPrice = { gt: 0 };
     }
 
     let products = [];

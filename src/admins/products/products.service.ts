@@ -4,11 +4,13 @@ import { BucketsService } from '@App/shared';
 import { ProductStatusType } from '@prisma/client';
 import {
   CreateProductDto,
+  FindProductBaseDto,
+  FindProductBaseResultDto,
   FindProductDto,
   FindProductResultDto,
   UpdateProductDto,
 } from './dtos';
-import { ProductEntity } from './entities';
+import { ProductBaseEntity, ProductEntity } from './entities';
 import { randomUUID } from 'crypto';
 import * as Slug from 'slug';
 
@@ -45,8 +47,11 @@ export class ProductsService {
       throw new BadRequestException('Já existe um produto com este nome.');
     }
 
-    const pictures = [];
     for (let i = 0; i < data.pictures.length; i++) {
+      if (data.pictures[i].indexOf('data:image') !== 0) {
+        continue;
+      }
+
       const imageName = `${data.id}_${randomUUID()}`;
 
       await this.bucketsService.uploadImage(
@@ -54,12 +59,12 @@ export class ProductsService {
         imageName,
         data.pictures[i],
       );
-      pictures.push(
-        this.bucketsService.getImageUrl(this.bucketName, imageName),
+
+      data.pictures[i] = this.bucketsService.getImageUrl(
+        this.bucketName,
+        imageName,
       );
     }
-
-    data.pictures = pictures;
 
     product = await this.prismaService.product.create({ data });
 
@@ -201,5 +206,45 @@ export class ProductsService {
         deletedAt: new Date(),
       },
     });
+  }
+
+  async findProductBase(
+    findProductBaseDto: FindProductBaseDto,
+  ): Promise<FindProductBaseResultDto> {
+    const { label } = findProductBaseDto;
+    const where = { label: { startsWith: label.toUpperCase() } };
+    const paginationData =
+      FindProductDto.getPaginationParams(findProductBaseDto);
+
+    let results = [];
+    const total = await this.prismaService.productBase.count({
+      where,
+      skip: paginationData.skip,
+    });
+
+    if (total !== 0) {
+      results = await this.prismaService.productBase.findMany({
+        where,
+        skip: paginationData.skip,
+        take: paginationData.limit,
+      });
+    }
+
+    return {
+      page: paginationData.page,
+      limit: paginationData.limit,
+      total,
+      data:
+        results.map(
+          (p) =>
+            new ProductBaseEntity({
+              ...p,
+              picture: this.bucketsService.getImageUrl(
+                `${this.bucketName}/bases`,
+                p.picture,
+              ),
+            }),
+        ) || [],
+    };
   }
 }

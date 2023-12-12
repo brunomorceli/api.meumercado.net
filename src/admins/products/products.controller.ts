@@ -62,4 +62,12 @@ export class ProductsController {
   delete(@Req() req: any, @Param() props: IdParamDto): Promise<void> {
     return this.productsService.delete(req.user.company.id, props.id);
   }
+
+  @Get('find-base')
+  findProductBase(
+    @Req() req,
+    @Query() findProductDto: FindProductDto,
+  ): Promise<FindProductResultDto> {
+    return this.productsService.find(req.user.company.id, findProductDto);
+  }
 }
