@@ -62,6 +62,7 @@ export class OrdersService {
         data: {
           companyId: user.companyId,
           userId: user.id,
+          deliveryType: data.deliveryType,
           observation: data.observation,
           status,
         },

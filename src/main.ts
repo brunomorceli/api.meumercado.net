@@ -22,8 +22,8 @@ async function bootstrap() {
   //app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   const config = new DocumentBuilder()
-    .setTitle('api.nearstore')
-    .setDescription('Nearstore API Documentation')
+    .setTitle('api.meumercado')
+    .setDescription('Meunegocio API Documentation')
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

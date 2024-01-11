@@ -1,5 +1,5 @@
 {
-  "name": "api.nearstore",
+  "name": "api.meumercado",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -28,6 +28,7 @@
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/swagger": "^7.1.8",
     "@prisma/client": "^5.1.1",
+    "@sendgrid/mail": "^8.1.0",
     "aws-sdk": "^2.1441.0",
     "axios": "^1.4.0",
     "class-transformer": "^0.5.1",

@@ -6,6 +6,7 @@ import {
   ImageArrayDecorator,
   ImageDecorator,
   StringDecorator,
+  TenantIdDecorator,
   UuidDecorator,
 } from '@App/shared';
 import { Company, CompanyStatusType } from '@prisma/client';
@@ -15,6 +16,12 @@ import { IsInstance, IsOptional } from 'class-validator';
 export class CompanyEntity {
   @UuidDecorator()
   id: string;
+
+  @StringDecorator()
+  name: string;
+
+  @TenantIdDecorator()
+  tenantId: string;
 
   @IsInstance(EntityDto)
   @IsOptional()

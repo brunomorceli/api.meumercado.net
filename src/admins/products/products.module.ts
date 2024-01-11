@@ -7,10 +7,11 @@ import {
   BucketsService,
 } from '@App/shared/modules';
 import { AuthModule, JwtStrategy } from '@App/admins/auth';
+import { ProductBasesController } from './product-base.controller';
 
 @Module({
   imports: [AuthModule],
-  controllers: [ProductsController],
+  controllers: [ProductsController, ProductBasesController],
   providers: [
     BucketsService,
     MessagesService,

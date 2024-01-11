@@ -119,7 +119,7 @@ export class AuthService {
         },
       });
 
-      await this.messageService.sendEmail({
+      await this.messageService.sendAuthenticationCode({
         email,
         subject: 'Código de autenticação.',
         metadata: { validationCode: confirmationCode },
