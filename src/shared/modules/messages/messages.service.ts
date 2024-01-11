@@ -13,7 +13,7 @@ export class MessagesService {
 
     const msg = {
       to: email,
-      from: 'morcelimail@gmail.com', //'no-reply@nearstore.com.br',
+      from: 'morcelimail@gmail.com', //'no-reply@meumercado.com.br',
       subject,
       text: `Seu código de autenticação é: ${metadata.validationCode}`,
       html: `Seu código de autenticação é: <strong>${metadata.validationCode}</strong>.`,
