@@ -12,11 +12,13 @@ import * as fs from 'fs';
 async function bootstrap() {
   const isProduction = process.env.NODE_ENV === 'production';
   const sslDir = process.env.SSL_DIR;
-  const httpsOptions: any = undefined;
+  let httpsOptions: any = undefined;
 
   if (isProduction) {
-    httpsOptions.key = fs.readFileSync(`${sslDir}/privkey.pem`);
-    httpsOptions.cert = fs.readFileSync(`${sslDir}/cert.pem`);
+    httpsOptions = {
+      key: fs.readFileSync(`${sslDir}/privkey.pem`);
+      cert: fs.readFileSync(`${sslDir}/cert.pem`);
+    };
   }
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
