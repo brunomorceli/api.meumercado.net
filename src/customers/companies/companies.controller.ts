@@ -20,8 +20,8 @@ export class CompaniesController {
     const { tenantId } = res.locals;
 
     const content = {
-      short_name: 'Meunegocio',
-      name: 'Meunegocio',
+      short_name: 'Meumercado',
+      name: 'Meumercado',
       icons: [
         {
           src: 'favicon.ico',

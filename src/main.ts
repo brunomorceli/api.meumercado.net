@@ -12,17 +12,14 @@ import * as fs from 'fs';
 async function bootstrap() {
   const isProduction = process.env.NODE_ENV === 'production';
   const sslDir = process.env.SSL_DIR;
-  const appOptions: any = {};
-  let port = process.env.APP_PORT || 3003;
+  const httpsOptions: any = undefined;
 
   if (isProduction) {
-    appOptions.key = fs.readFileSync(`${sslDir}/privkey.pem`);
-    appOptions.cert = fs.readFileSync(`${sslDir}/cert.pem`);
-
-    port = 443;
+    httpsOptions.key = fs.readFileSync(`${sslDir}/privkey.pem`);
+    httpsOptions.cert = fs.readFileSync(`${sslDir}/cert.pem`);
   }
 
-  const app = await NestFactory.create(AppModule, appOptions);
+  const app = await NestFactory.create(AppModule, { httpsOptions });
 
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
@@ -36,7 +33,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle('api.meumercado')
-    .setDescription('Meunegocio API Documentation')
+    .setDescription('Meumercado API Documentation')
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
@@ -51,6 +48,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(port);
+  await app.listen(process.env.APP_PORT || 3003);
 }
 bootstrap();
