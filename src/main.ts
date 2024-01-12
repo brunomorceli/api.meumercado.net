@@ -7,9 +7,22 @@ import {
 } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { json, urlencoded } from 'express';
+import * as fs from 'fs';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const isProduction = process.env.NODE_ENV === 'production';
+  const sslDir = process.env.SSL_DIR;
+  const appOptions: any = {};
+  let port = process.env.APP_PORT || 3003;
+
+  if (isProduction) {
+    appOptions.key = fs.readFileSync(`${sslDir}/privkey.pem`);
+    appOptions.cert = fs.readFileSync(`${sslDir}/cert.pem`);
+
+    port = 443;
+  }
+
+  const app = await NestFactory.create(AppModule, appOptions);
 
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
@@ -38,6 +51,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.APP_PORT || 3003);
+  await app.listen(port);
 }
 bootstrap();

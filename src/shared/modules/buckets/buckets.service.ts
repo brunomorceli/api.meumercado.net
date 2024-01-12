@@ -8,7 +8,6 @@ export class BucketsService {
 
   private async createBucket(bucket: string): Promise<void> {
     const buckets = await this.s3.listBuckets({});
-
     if (!buckets.Buckets.some((b) => b.Name === bucket)) {
       await this.s3.createBucket({ Bucket: bucket });
     }
