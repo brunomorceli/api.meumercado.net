@@ -16,8 +16,8 @@ async function bootstrap() {
 
   if (isProduction) {
     httpsOptions = {
-      key: fs.readFileSync(`${sslDir}/privkey.pem`);
-      cert: fs.readFileSync(`${sslDir}/cert.pem`);
+      key: fs.readFileSync(`${sslDir}/privkey.pem`),
+      cert: fs.readFileSync(`${sslDir}/cert.pem`),
     };
   }
 
