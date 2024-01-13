@@ -13,12 +13,15 @@ async function bootstrap() {
   const isProduction = process.env.NODE_ENV === 'production';
   const sslDir = process.env.SSL_DIR;
   let httpsOptions: any = undefined;
+  let port = process.env.APP_PORT || 3003;
 
   if (isProduction) {
     httpsOptions = {
       key: fs.readFileSync(`${sslDir}/privkey.pem`),
       cert: fs.readFileSync(`${sslDir}/cert.pem`),
     };
+
+    port = 443;
   }
 
   const app = await NestFactory.create(AppModule, { httpsOptions });
@@ -50,6 +53,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config, options);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.APP_PORT || 3003);
+  await app.listen(port);
 }
 bootstrap();
