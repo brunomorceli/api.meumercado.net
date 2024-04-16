@@ -36,7 +36,15 @@ export class GeneralUtils {
   }
 
   public static getTenantId(url: string): string {
-    let domain = url;
+    const result = url
+      .replace('https://', '')
+      .replace('http://', '')
+      .replace('www.', '')
+      .split(':')[0]
+      .split('.')[0];
+
+    return result.length !== 0 ? result : null;
+    /*let domain = url;
     if (url.includes('://')) {
       domain = url.split('://')[1];
     }
@@ -46,7 +54,7 @@ export class GeneralUtils {
     }
 
     const tenantId = domain.split('.')[0];
-    return tenantId;
+    return tenantId;*/
   }
 
   public static shuffle(array: any[]): any[] {

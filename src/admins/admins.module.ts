@@ -9,6 +9,7 @@ import {
 import {
   BucketsModule,
   NotificationsModule,
+  PlanMiddleware,
   TenantIdMiddleware,
 } from '../shared';
 
@@ -28,5 +29,6 @@ import {
 export class AdminsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer.apply(TenantIdMiddleware).forRoutes('*');
+    consumer.apply(PlanMiddleware).forRoutes('*');
   }
 }

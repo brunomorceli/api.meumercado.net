@@ -17,7 +17,22 @@ export class PlanDto {
   trialPeriodDays: number = 7;
   billingType: EPaymentBillingType;
 
-  public static fromResponse(response: GetPlanResponse): PlanDto {
+  static fromJson(data: any): PlanDto {
+    return {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      statementDescriptor: data.statement_descriptor,
+      price: data.price,
+      paymentMethods: data.payment_methods,
+      interval: data.interval,
+      intervalCount: data.interval_count,
+      trialPeriodDays: data.trial_period_days,
+      billingType: data.billing_type,
+    };
+  }
+
+  static fromResponse(response: GetPlanResponse): PlanDto {
     const plan = new PlanDto();
     plan.id = response.id;
     plan.name = response.name;

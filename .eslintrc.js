@@ -23,6 +23,10 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     "linebreak-style": 0,
     "global-require": 0,
-    "eslint linebreak-style": [0, "error", "windows"],
+    'linebreak-style': 'off',
+    "prettier/prettier": [
+      "error",
+      { endOfLine: "auto" }
+    ],
   },
 };

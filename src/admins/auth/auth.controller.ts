@@ -19,20 +19,24 @@ import {
 } from './dtos';
 import { Public } from '@App/admins/auth/jwt-auth.guard';
 
+import { Client } from '@pagarme/pagarme-nodejs-sdk';
 import {
-  Client,
-  CreateSubscriptionRequest,
-  CustomersController,
-  PlansController,
-  SubscriptionsController,
-} from '@pagarme/pagarme-nodejs-sdk';
-import axios from 'axios';
+  IdStringParamDto,
+  PagarmeService,
+  UpsertCustomerDto,
+  CreatePlanDto,
+  UpsertCardDto,
+  CreateSubscriptionDto,
+} from '@App/shared';
 
 @ApiTags('admins/auth')
 @Controller('admins/auth')
 export class AuthController {
   private pagarmeClient: Client;
-  constructor(private readonly authService: AuthService) {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly pagarmeService: PagarmeService,
+  ) {
     const secretKey = process.env.PAGARME_SECRET_KEY;
     if (!secretKey) {
       throw new Error(
@@ -70,36 +74,9 @@ export class AuthController {
 
   @Post('plans')
   @Public()
-  async addPlan(@Body() body: any): Promise<any> {
-    const name = body.name;
-    const description = body.description;
-    const statementDescriptor = body.statementDescriptor;
-    const price = body.price;
-
-    const data = {
-      name,
-      description,
-      statementDescriptor,
-      price,
-      paymentMethods: ['credit_card'],
-      shippable: false,
-      currency: 'BRL',
-      interval: 'month',
-      intervalCount: 1,
-      trialPeriodDays: 7,
-      billingType: 'prepaid',
-      pricingScheme: { schemeType: 'unit', price: 4999 },
-      quantity: 1,
-      items: [],
-      installments: [],
-      billingDays: [],
-      metadata: {},
-    };
-
-    const plansController = new PlansController(this.pagarmeClient);
+  addPlan(@Body() body: CreatePlanDto): Promise<any> {
     try {
-      const res = await plansController.createPlan(data);
-      return res.result;
+      return this.pagarmeService.createPlan(body);
     } catch (e) {
       throw new HttpException(
         'Error on try to create plan.',
@@ -110,32 +87,20 @@ export class AuthController {
 
   @Get('plans/:id')
   @Public()
-  async getPlan(@Param() param: any): Promise<any> {
-    const plansController = new PlansController(this.pagarmeClient);
-    try {
-      const res = await plansController.getPlan(param.id);
-      return res.result as any;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to get plan.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getPlan(@Param() params: IdStringParamDto): Promise<any> {
+    return this.pagarmeService.getPlan(params.id);
   }
 
   @Get('plans')
   @Public()
   async getPlans(): Promise<any> {
-    const plansController = new PlansController(this.pagarmeClient);
-    try {
-      const res = await plansController.getPlans();
-      return res.result.data;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to get plans.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return this.pagarmeService.getPlans();
+  }
+
+  @Delete('plans/:id')
+  @Public()
+  async deletePlan(@Param() params: IdStringParamDto): Promise<any> {
+    return this.pagarmeService.deletePlan(params.id);
   }
 
   // ===========================================================
@@ -144,132 +109,42 @@ export class AuthController {
 
   @Post('customers')
   @Public()
-  async createCustomer(): Promise<any> {
-    // serve como upsert
-    const data = {
-      name: 'Jhon Doe',
-      email: 'jhon_doe@gmail.com',
-      document: '00245290109',
-      type: 'individual', // individual, company, passport
-      gender: 'male',
-      code: 'ID_DO_MEU_MERCADO',
-      address: {
-        street: 'Travessa dos Alfaiates',
-        neighborhood: 'Arnaldo Estevão de Figueiredo',
-        number: '2345',
-        country: 'BR',
-        state: 'MS',
-        city: 'Campo Grande',
-        zipCode: '79043100',
-        complement: '',
-        line1: '',
-        line2: '',
-      },
-      phones: {},
-      metadata: {},
-    };
-
-    const customerController = new CustomersController(this.pagarmeClient);
-    try {
-      const res = await customerController.createCustomer(data);
-      return res.result;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to create customer.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async createCustomer(@Body() body: UpsertCustomerDto): Promise<any> {
+    return this.pagarmeService.upsertCustomer(body);
   }
 
   @Get('customers/:id')
   @Public()
-  async getCustomer(@Param() param: any): Promise<any> {
-    const customerController = new CustomersController(this.pagarmeClient);
-    try {
-      const res = await customerController.getCustomer(param.id);
-      return res.result as any;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to get customer.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getCustomer(@Param() params: IdStringParamDto): Promise<any> {
+    return this.pagarmeService.getCustomer(params.id);
   }
 
   // ===========================================================
   // CARDS
   // ===========================================================
 
-  @Post('customers/:customerId/cards')
+  @Post('customers/:id/cards')
   @Public()
-  async createCard(@Param() param): Promise<any> {
-    const data = {
-      number: '4701322211111234',
-      holderName: 'Jhon Doe',
-      expMonth: 12,
-      expYear: 26,
-      cvv: '351',
-      billingAddress: {
-        street: 'Travessa dos Alfaiates',
-        neighborhood: 'Arnaldo Estevão de Figueiredo',
-        number: '2345',
-        country: 'BR',
-        state: 'MS',
-        city: 'Campo Grande',
-        zipCode: '79043100',
-        complement: '',
-        line1: '',
-        line2: '',
-      },
-      brand: 'visa',
-      type: 'credit',
-      holderDocument: '00245290109',
-      metadata: {},
-    };
-
-    const customerController = new CustomersController(this.pagarmeClient);
-    try {
-      const res = await customerController.createCard(param.customerId, data);
-      return res.result;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to add credit card.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async createCard(@Param() params, @Body() body: UpsertCardDto): Promise<any> {
+    return this.pagarmeService.upsertCard(params.id, body);
   }
 
-  @Get('customers/:customerId/cards')
+  @Get('customers/:id/cards')
   @Public()
-  async getCards(@Param() param: any): Promise<any> {
-    const customerController = new CustomersController(this.pagarmeClient);
-    try {
-      const res = await customerController.getCards(param.customerId);
-      return res.result.data as any;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to get card list.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getCards(@Param() params: IdStringParamDto): Promise<any> {
+    return this.pagarmeService.getCards(params.id);
   }
 
   @Get('customers/:customerId/cards/:cardId')
   @Public()
-  async getCard(@Param() param: any): Promise<any> {
-    const customerController = new CustomersController(this.pagarmeClient);
-    try {
-      const res = await customerController.getCard(
-        param.customerId,
-        param.cardId,
-      );
-      return res.result as any;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to get card.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getCard(@Param() params: any): Promise<any> {
+    return this.pagarmeService.getCard(params.customerId, params.cardId);
+  }
+
+  @Delete('customers/:customerId/cards/:cardId')
+  @Public()
+  async deleteCard(@Param() params: any): Promise<any> {
+    return this.pagarmeService.deleteCard(params.customerId, params.cardId);
   }
 
   // ===========================================================
@@ -278,109 +153,28 @@ export class AuthController {
 
   @Post('customers/:customerId/subscriptions')
   @Public()
-  async createSubscription(@Param() param): Promise<any> {
-    const customerController = new CustomersController(this.pagarmeClient);
-    const planController = new PlansController(this.pagarmeClient);
-
-    const customer = (await customerController.getCustomer(param.customerId))
-      .result;
-    const plans = await planController.getPlans();
-    const plan = plans.result.data[0];
-    const cards = await customerController.getCards(param.customerId);
-    const card = cards.result.data[0];
-
-    const url = 'https://api.pagar.me/core/v5/subscriptions';
-    const secretKeyBase64 = Buffer.from(
-      `${process.env.PAGARME_SECRET_KEY}:`,
-    ).toString('base64');
-
-    try {
-      const res = await axios.request({
-        url,
-        method: 'post',
-        headers: {
-          Authorization: `Basic ${secretKeyBase64}`,
-          'Content-Type': 'application/json',
-        },
-        data: {
-          code: 'CODIGO_MEU_MERCADO_QUALQUER',
-          plan_id: plan.id,
-          customer_id: customer.id,
-          payment_method: 'credit_card',
-          card_id: card.id,
-        },
-      });
-
-      return res.data;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to create custom subscription.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async createSubscription(
+    @Param() params,
+    @Body() body: CreateSubscriptionDto,
+  ): Promise<any> {
+    return this.pagarmeService.createSubscription(params.customerId, body);
   }
 
-  @Get('customers/:customerId/subscriptions')
+  @Get('customers/:id/subscriptions')
   @Public()
-  async getSubscriptions(@Param() param: any): Promise<any> {
-    const url = `https://api.pagar.me/core/v5/subscriptions?customer_id=${param.customerId}`;
-    const secretKeyBase64 = Buffer.from(
-      `${process.env.PAGARME_SECRET_KEY}:`,
-    ).toString('base64');
-
-    try {
-      const res = await axios.request({
-        method: 'get',
-        url,
-        headers: {
-          Authorization: `Basic ${secretKeyBase64}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      return res.data.data;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to get customer subscriptions.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getSubscriptions(@Param() params: IdStringParamDto): Promise<any> {
+    return this.pagarmeService.getSubscriptions(params.id);
   }
 
   @Get('customers/:customerId/subscriptions/:subscriptionId')
   @Public()
-  async getSubscription(@Param() param: any): Promise<any> {
-    const subscriptionController = new SubscriptionsController(
-      this.pagarmeClient,
-    );
-    try {
-      const res = await subscriptionController.getSubscription(
-        param.subscriptionId,
-      );
-      return res.result;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to get customer subscription.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async getSubscription(@Param() params: any): Promise<any> {
+    return this.pagarmeService.getSubscription(params.subscriptionId);
   }
 
   @Delete('customers/:customerId/subscriptions/:subscriptionId')
   @Public()
-  async cancelSubscription(@Param() param: any): Promise<any> {
-    const subscriptionController = new SubscriptionsController(
-      this.pagarmeClient,
-    );
-    try {
-      const res = await subscriptionController.cancelSubscription(
-        param.subscriptionId,
-      );
-      return res.result;
-    } catch (e) {
-      throw new HttpException(
-        'Error on try to cancel customer subscription.',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+  async cancelSubscription(@Param() params: any): Promise<any> {
+    return this.pagarmeService.cancelSubscription(params.subscriptionId);
   }
 }
