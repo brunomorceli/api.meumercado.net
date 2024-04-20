@@ -1,5 +1,9 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { AuthenticationStatusType, RoleType } from '@prisma/client';
+import {
+  AuthenticationStatusType,
+  CompanyPlan,
+  RoleType,
+} from '@prisma/client';
 import { PrismaService, MessagesService } from '@App/shared/modules';
 import { GeneralUtils } from '@App/shared';
 import { CompaniesService } from '../companies';
@@ -143,5 +147,23 @@ export class AuthService {
       companyName: user.company.name,
       logo: user.company.logo,
     };
+  }
+
+  async getCompanyPlan(companyId: string): Promise<CompanyPlan> {
+    const company = await this.prismaService.company.findFirst({
+      where: { id: companyId },
+      include: {
+        companyPlans: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+        },
+      },
+    });
+
+    if (!company || company.companyPlans.length === 0) {
+      return null;
+    }
+
+    return company.companyPlans[0];
   }
 }

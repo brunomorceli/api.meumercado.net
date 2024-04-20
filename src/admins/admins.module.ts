@@ -10,8 +10,10 @@ import {
   BucketsModule,
   NotificationsModule,
   PlanMiddleware,
+  PrismaService,
   TenantIdMiddleware,
 } from '../shared';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import {
     OrdersModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [JwtService, PrismaService],
 })
 export class AdminsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

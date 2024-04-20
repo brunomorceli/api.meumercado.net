@@ -44,6 +44,12 @@ export class SubscriptionDto {
   @DateDecorator()
   startAt: string;
 
+  @DateDecorator()
+  nextBillingAt: string;
+
+  @DateDecorator()
+  cancelledAt: string;
+
   static fromJson(data: any): SubscriptionDto {
     return {
       id: data.id,
@@ -57,6 +63,8 @@ export class SubscriptionDto {
       statementDecription: data.statement_descriptor,
       createdAt: data.created_at,
       startAt: data.start_at,
+      nextBillingAt: data.next_billing_at,
+      cancelledAt: data.canceled_at,
     };
   }
 }

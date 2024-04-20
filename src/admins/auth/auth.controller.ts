@@ -19,7 +19,6 @@ import {
 } from './dtos';
 import { Public } from '@App/admins/auth/jwt-auth.guard';
 
-import { Client } from '@pagarme/pagarme-nodejs-sdk';
 import {
   IdStringParamDto,
   PagarmeService,
@@ -32,23 +31,10 @@ import {
 @ApiTags('admins/auth')
 @Controller('admins/auth')
 export class AuthController {
-  private pagarmeClient: Client;
   constructor(
     private readonly authService: AuthService,
     private readonly pagarmeService: PagarmeService,
-  ) {
-    const secretKey = process.env.PAGARME_SECRET_KEY;
-    if (!secretKey) {
-      throw new Error(
-        "Error: environment variable: 'PAGARME_SECRET_KEY' is missing.",
-      );
-    }
-
-    this.pagarmeClient = new Client({
-      timeout: 0,
-      basicAuthUserName: secretKey,
-    });
-  }
+  ) {}
 
   @Post('signin')
   @Public()

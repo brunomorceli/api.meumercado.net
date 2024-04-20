@@ -4,7 +4,13 @@ import {
   HttpStatus,
   Injectable,
 } from '@nestjs/common';
-import { CompanyStatusType, RoleType, UserStatusType } from '@prisma/client';
+import {
+  CompanyPlanPlatform,
+  CompanyPlanType,
+  CompanyStatusType,
+  RoleType,
+  UserStatusType,
+} from '@prisma/client';
 import { PrismaService, PaginationDto, BucketsService } from '@App/shared';
 import { CompanyEntity } from './entities';
 import { randomUUID } from 'crypto';
@@ -15,6 +21,7 @@ import {
   FindCompanyResultDto,
   UpdateCompanyDto,
 } from './dtos';
+import * as moment from 'moment';
 
 @Injectable()
 export class CompaniesService {
@@ -96,6 +103,17 @@ export class CompaniesService {
           email,
           role: RoleType.OWNER,
           status: UserStatusType.ACTIVE,
+        },
+      });
+
+      await prisma.companyPlan.create({
+        data: {
+          companyId: company.id,
+          platform: CompanyPlanPlatform.PAGARME,
+          type: CompanyPlanType.TRIAL,
+          expiredAt: moment()
+            .add(process.env.TRIAL_PERIOD || 7, 'days')
+            .toISOString(),
         },
       });
 

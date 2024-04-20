@@ -1,16 +1,21 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import {
+  Inject,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { AuthenticationStatusType } from '@prisma/client';
 import { PrismaService } from '@App/shared/modules/prisma';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, 'admins') {
-  constructor(private readonly prismaService: PrismaService) {
+  constructor(
+    private readonly prismaService: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
+  ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
@@ -32,10 +37,19 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'admins') {
           authenticatedAt: new Date(createdAt),
           status: AuthenticationStatusType.ACTIVE,
         },
-        include: {
+        select: {
           user: {
             where: { id: userId },
-            include: { company: true },
+            include: {
+              company: {
+                include: {
+                  companyPlans: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                  },
+                },
+              },
+            },
           },
         },
       });
@@ -43,7 +57,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'admins') {
       throw new InternalServerErrorException();
     }
 
-    if (!auth || !auth.user) {
+    if (!auth || !auth.user || !auth.user.company) {
       throw new UnauthorizedException();
     }
 

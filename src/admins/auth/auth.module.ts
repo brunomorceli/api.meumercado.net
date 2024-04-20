@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
+import { JwtModule, JwtService } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { PrismaService } from '@App/shared/modules/prisma';
 import { AuthController } from './auth.controller';
@@ -27,6 +27,7 @@ import { CompaniesModule, CompaniesService } from '../companies';
   controllers: [AuthController],
   providers: [
     PrismaService,
+    JwtService,
     MessagesService,
     CompaniesService,
     PagarmeService,
