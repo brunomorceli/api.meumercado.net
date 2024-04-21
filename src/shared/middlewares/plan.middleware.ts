@@ -8,14 +8,14 @@ import {
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { AuthService } from '@App/admins/auth/auth.service';
 import { CompanyPlan } from '@prisma/client';
+import { CompaniesService } from '@App/customers/companies';
 
 @Injectable()
 export class PlanMiddleware implements NestMiddleware {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly authService: AuthService,
+    private readonly companiesService: CompaniesService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -29,7 +29,7 @@ export class PlanMiddleware implements NestMiddleware {
       secret: process.env.ADMIN_JWT_SECRET,
     });
 
-    const companyPlan: CompanyPlan = await this.authService.getCompanyPlan(
+    const companyPlan: CompanyPlan = await this.companiesService.getLastPlan(
       companyId,
     );
 
@@ -37,9 +37,11 @@ export class PlanMiddleware implements NestMiddleware {
       return next();
     }
 
-    const whitelist = ['/admins/companies', '/admins/plans'];
+    res.locals.companyPlan = companyPlan;
+
     const now = new Date();
     if (companyPlan.expiredAt.getTime() < now.getTime()) {
+      const whitelist = ['/admins/companies', '/admins/plans'];
       if (whitelist.filter((i) => req.baseUrl.includes(i)).length === 0) {
         throw new HttpException(null, HttpStatus.PAYMENT_REQUIRED);
       }

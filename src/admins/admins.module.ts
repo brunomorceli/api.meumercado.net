@@ -14,6 +14,7 @@ import {
   TenantIdMiddleware,
 } from '../shared';
 import { JwtService } from '@nestjs/jwt';
+import { CompaniesService } from '@App/customers';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { JwtService } from '@nestjs/jwt';
     OrdersModule,
   ],
   controllers: [],
-  providers: [JwtService, PrismaService],
+  providers: [JwtService, PrismaService, CompaniesService],
 })
 export class AdminsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
