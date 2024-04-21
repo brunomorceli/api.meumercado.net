@@ -2,12 +2,12 @@ import {
   BadRequestException,
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
 } from '@nestjs/common';
 import {
-  CompanyPlanPlatform,
-  CompanyPlanType,
   CompanyStatusType,
+  Plan,
   RoleType,
   UserStatusType,
 } from '@prisma/client';
@@ -15,6 +15,7 @@ import { PrismaService, PaginationDto, BucketsService } from '@App/shared';
 import { CompanyEntity } from './entities';
 import { randomUUID } from 'crypto';
 import * as Slug from 'slug';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import {
   CreateCompanyDto,
   FindCompanyDto,
@@ -30,6 +31,7 @@ export class CompaniesService {
   constructor(
     private readonly bucketService: BucketsService,
     private readonly prismaService: PrismaService,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
   async getTenantId(label: string, prismaHandler?: any): Promise<string> {
@@ -95,7 +97,7 @@ export class CompaniesService {
         },
       });
 
-      await prisma.user.create({
+      const user = await prisma.user.create({
         data: {
           companyId: company.id,
           name: userName,
@@ -106,11 +108,11 @@ export class CompaniesService {
         },
       });
 
-      await prisma.companyPlan.create({
+      await prisma.subscription.create({
         data: {
-          companyId: company.id,
-          platform: CompanyPlanPlatform.PAGARME,
-          type: CompanyPlanType.TRIAL,
+          userId: user.id,
+          metadata: {},
+          plan: Plan.TRIAL,
           expiredAt: moment()
             .add(process.env.TRIAL_PERIOD || 7, 'days')
             .toISOString(),

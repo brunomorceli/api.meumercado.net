@@ -27,8 +27,8 @@ import { CompaniesModule, CompaniesService } from '../companies';
   controllers: [AuthController],
   providers: [
     PrismaService,
-    JwtService,
     MessagesService,
+    JwtService,
     CompaniesService,
     PagarmeService,
     AuthService,

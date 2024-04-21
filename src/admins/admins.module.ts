@@ -8,17 +8,23 @@ import {
 } from '@App/admins';
 import {
   BucketsModule,
+  MessagesModule,
   NotificationsModule,
+  PagarmeModule,
+  PagarmeService,
   PlanMiddleware,
   PrismaService,
   TenantIdMiddleware,
 } from '../shared';
 import { JwtService } from '@nestjs/jwt';
 import { CompaniesService } from '@App/customers';
+import { AuthService } from '@App/customers/auth/auth.service';
 
 @Module({
   imports: [
     NotificationsModule,
+    MessagesModule,
+    PagarmeModule,
     BucketsModule,
     AuthModule,
     UsersModule,
@@ -27,7 +33,13 @@ import { CompaniesService } from '@App/customers';
     OrdersModule,
   ],
   controllers: [],
-  providers: [JwtService, PrismaService, CompaniesService],
+  providers: [
+    JwtService,
+    PagarmeService,
+    PrismaService,
+    CompaniesService,
+    AuthService,
+  ],
 })
 export class AdminsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

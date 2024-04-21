@@ -41,13 +41,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'admins') {
           user: {
             where: { id: userId },
             include: {
-              company: {
-                include: {
-                  companyPlans: {
-                    orderBy: { createdAt: 'desc' },
-                    take: 1,
-                  },
-                },
+              company: true,
+              subscriptions: {
+                orderBy: { createdAt: 'desc' },
+                take: 1,
               },
             },
           },

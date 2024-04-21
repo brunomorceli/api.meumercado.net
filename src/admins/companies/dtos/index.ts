@@ -5,4 +5,3 @@ export * from './find-company.dto';
 export * from './find-company-result.dto';
 export * from './check-subodmain';
 export * from './check-subodmain-result.dto';
-export * from './company-plan.dto';

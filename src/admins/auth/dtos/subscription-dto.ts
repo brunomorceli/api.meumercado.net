@@ -4,14 +4,14 @@ import {
   EnumDecorator,
   UuidDecorator,
 } from '@App/shared';
-import { CompanyPlan, CompanyPlanType } from '@prisma/client';
+import { Plan, Subscription } from '@prisma/client';
 
-export class CompanyPlanDto {
+export class SubscriptionDto {
   @UuidDecorator()
   id: string;
 
-  @EnumDecorator({ enumType: CompanyPlanType })
-  type: CompanyPlanType;
+  @EnumDecorator({ enumType: Plan })
+  plan: Plan;
 
   @DateDecorator()
   createdAt: string;
@@ -28,9 +28,9 @@ export class CompanyPlanDto {
   @BooleanDecorator()
   isCancelled: boolean;
 
-  constructor(data: CompanyPlan) {
+  constructor(data: Subscription) {
     this.id = data.id;
-    this.type = data.type;
+    this.plan = data.plan;
     this.createdAt = data.createdAt.toISOString();
     this.cancelledAt = Boolean(data.cancelledAt)
       ? data.cancelledAt.toDateString()

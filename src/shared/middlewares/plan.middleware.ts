@@ -8,14 +8,16 @@ import {
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { CompanyPlan } from '@prisma/client';
-import { CompaniesService } from '@App/customers/companies';
+import { PagarmeService } from '../modules';
+import { Subscription } from '@prisma/client';
+import { AuthService } from '@App/admins/auth/auth.service';
 
 @Injectable()
 export class PlanMiddleware implements NestMiddleware {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly companiesService: CompaniesService,
+    private readonly authService: AuthService,
+    private readonly pagarmeService: PagarmeService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
@@ -25,22 +27,22 @@ export class PlanMiddleware implements NestMiddleware {
       return next();
     }
 
-    const { companyId } = this.jwtService.verify(token, {
+    const { userId } = this.jwtService.verify(token, {
       secret: process.env.ADMIN_JWT_SECRET,
     });
 
-    const companyPlan: CompanyPlan = await this.companiesService.getLastPlan(
-      companyId,
+    const subscription: Subscription = await this.authService.getSubscription(
+      userId,
     );
 
-    if (!companyPlan) {
+    if (!subscription) {
       return next();
     }
 
-    res.locals.companyPlan = companyPlan;
+    res.locals.subscription = subscription;
 
     const now = new Date();
-    if (companyPlan.expiredAt.getTime() < now.getTime()) {
+    if (subscription.expiredAt.getTime() < now.getTime()) {
       const whitelist = ['/admins/companies', '/admins/plans'];
       if (whitelist.filter((i) => req.baseUrl.includes(i)).length === 0) {
         throw new HttpException(null, HttpStatus.PAYMENT_REQUIRED);

@@ -7,17 +7,18 @@ import {
   HttpStatus,
   Param,
   Delete,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiTags } from '@nestjs/swagger';
 import {
   ConfirmDto,
   ConfirmResponseDto,
   SigninDto,
   SigninResponseDto,
   SignupDto,
+  SubscriptionDto,
 } from './dtos';
-import { Public } from '@App/admins/auth/jwt-auth.guard';
 
 import {
   IdStringParamDto,
@@ -27,6 +28,9 @@ import {
   UpsertCardDto,
   CreateSubscriptionDto,
 } from '@App/shared';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
+import { Public } from './jwt-auth.guard';
 
 @ApiTags('admins/auth')
 @Controller('admins/auth')
@@ -52,6 +56,14 @@ export class AuthController {
   @Public()
   confirm(@Body() confirmDto: ConfirmDto): Promise<ConfirmResponseDto> {
     return this.authService.confirm(confirmDto);
+  }
+
+  @UseGuards(AuthGuard('admins'))
+  @Get('subscription')
+  async getSubscription(@Req() req: any): Promise<SubscriptionDto> {
+    const subscription = await this.authService.getSubscription(req.user.id);
+
+    return Boolean(subscription) ? new SubscriptionDto(subscription) : null;
   }
 
   // ===========================================================
@@ -148,19 +160,21 @@ export class AuthController {
 
   @Get('customers/:id/subscriptions')
   @Public()
-  async getSubscriptions(@Param() params: IdStringParamDto): Promise<any> {
+  async getCustomerSubscriptions(
+    @Param() params: IdStringParamDto,
+  ): Promise<any> {
     return this.pagarmeService.getSubscriptions(params.id);
   }
 
   @Get('customers/:customerId/subscriptions/:subscriptionId')
   @Public()
-  async getSubscription(@Param() params: any): Promise<any> {
+  async getCustomerSubscription(@Param() params: any): Promise<any> {
     return this.pagarmeService.getSubscription(params.subscriptionId);
   }
 
   @Delete('customers/:customerId/subscriptions/:subscriptionId')
   @Public()
-  async cancelSubscription(@Param() params: any): Promise<any> {
+  async cancelCustomerSubscription(@Param() params: any): Promise<any> {
     return this.pagarmeService.cancelSubscription(params.subscriptionId);
   }
 }

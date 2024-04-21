@@ -35,27 +35,8 @@ model Company {
   products      Product[]
   orders        Order[]
   notifications Notification[]
-  companyPlans  CompanyPlan[]
 
   @@map("companies")
-}
-
-model CompanyPlan {
-  id             String              @id @default(uuid()) @db.Uuid
-  platform       CompanyPlanPlatform @default(PAGARME)
-  type           CompanyPlanType     @default(TRIAL)
-  customerId     String?
-  subscriptionId String?
-  createdAt      DateTime            @default(now()) @map("created_at")
-  updatedAt      DateTime            @updatedAt @map("updated_at")
-  expiredAt      DateTime?           @map("expired_at")
-  cancelledAt    DateTime?           @map("cancelled_at")
-  companyId      String              @map("company_id") @db.Uuid
-  company        Company             @relation(fields: [companyId], references: [id])
-
-  @@index([customerId])
-  @@index([subscriptionId])
-  @@map("company_plans")
 }
 
 model User {
@@ -82,12 +63,27 @@ model User {
   deletedAt         DateTime?      @map("deleted_at")
 
   authentications Authentication[]
+  subscriptions   Subscription[]
   orders          Order[]
   orderLogs       OrderLog[]
   notifications   Notification[]
 
   @@unique([email, companyId])
   @@map("users")
+}
+
+model Subscription {
+  id          String    @id @default(uuid()) @db.Uuid
+  plan        Plan      @default(TRIAL)
+  metadata    Json
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  expiredAt   DateTime? @map("expired_at")
+  cancelledAt DateTime? @map("cancelled_at")
+  userId      String    @map("user_id") @db.Uuid
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
 }
 
 model Authentication {
@@ -320,7 +316,7 @@ enum CompanyPlanPlatform {
   MERCADO_PAGO
 }
 
-enum CompanyPlanType {
+enum Plan {
   TRIAL
   BASIC
   INTERMEDIATE
