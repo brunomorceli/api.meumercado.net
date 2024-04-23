@@ -43,7 +43,7 @@ export class PlanMiddleware implements NestMiddleware {
 
     const now = new Date();
     if (subscription.expiredAt.getTime() < now.getTime()) {
-      const whitelist = ['/admins/companies', '/admins/plans'];
+      const whitelist = ['/admins/companies', '/admins/auth/subscription'];
       if (whitelist.filter((i) => req.baseUrl.includes(i)).length === 0) {
         throw new HttpException(null, HttpStatus.PAYMENT_REQUIRED);
       }

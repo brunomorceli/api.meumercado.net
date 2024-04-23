@@ -144,6 +144,7 @@ export class PagarmeService {
 
       return CardDto.fromJson(response.data);
     } catch (e) {
+      console.log(e.response.data);
       throw new Error('Error on try to save card');
     }
   }
