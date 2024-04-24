@@ -1,12 +1,10 @@
 import {
   CpfCnpjDecorator,
   EmailDecorator,
-  EnumDecorator,
   StringDecorator,
 } from '@App/shared/decorators';
 import { AddressDto } from './address.dto';
 import { Type } from 'class-transformer';
-import { EGender } from '../enums/gender.enum';
 import { IsNotEmpty } from 'class-validator';
 
 export class UpsertCustomerDto {
@@ -18,9 +16,6 @@ export class UpsertCustomerDto {
 
   @CpfCnpjDecorator()
   document: string;
-
-  @EnumDecorator({ enumType: EGender })
-  gender: EGender;
 
   @StringDecorator()
   code: string;
@@ -35,7 +30,6 @@ export class UpsertCustomerDto {
       email: data.email,
       document: data.document,
       type: 'individual',
-      gender: data.gender,
       code: data.code,
       address: AddressDto.toJson(data.address),
       phones: {},

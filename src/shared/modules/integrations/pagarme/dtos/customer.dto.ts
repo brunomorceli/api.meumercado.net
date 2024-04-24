@@ -1,10 +1,8 @@
 import {
   CpfCnpjDecorator,
   EmailDecorator,
-  EnumDecorator,
   StringDecorator,
 } from '@App/shared/decorators';
-import { EGender } from '../enums/gender.enum';
 
 export class CustomerDto {
   @StringDecorator()
@@ -19,9 +17,6 @@ export class CustomerDto {
   @CpfCnpjDecorator()
   document: string;
 
-  @EnumDecorator({ enumType: EGender })
-  gender: EGender;
-
   @StringDecorator()
   code: string;
 
@@ -31,7 +26,6 @@ export class CustomerDto {
       name: data.name,
       email: data.email,
       document: data.email,
-      gender: data.gender,
       code: data.code,
     };
   }

@@ -1,5 +1,4 @@
 import {
-  EnumDecorator,
   NumberDecorator,
   StringDecorator,
   StringNumberDecorator,
@@ -7,7 +6,6 @@ import {
 import { AddressDto } from './address.dto';
 import { Type } from 'class-transformer';
 import { IsNotEmpty } from 'class-validator';
-import { EPagarmeCardType } from '../enums';
 
 export class UpsertCardDto {
   @StringDecorator({ required: false })
@@ -32,12 +30,6 @@ export class UpsertCardDto {
   @IsNotEmpty()
   billingAddress: AddressDto;
 
-  @StringDecorator()
-  brand: string;
-
-  @EnumDecorator({ enumType: EPagarmeCardType })
-  type: EPagarmeCardType;
-
   @StringNumberDecorator()
   holderDocument: string;
 
@@ -50,8 +42,6 @@ export class UpsertCardDto {
       exp_year: data.expYear,
       cvv: data.cvv,
       billing_address: AddressDto.toJson(data.billingAddress),
-      brand: data.brand,
-      type: data.type,
       holder_document: data.holderDocument,
       metadata: {},
     };
